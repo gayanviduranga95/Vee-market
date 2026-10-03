@@ -1,5 +1,7 @@
 package com.veemarket.farmer;
 
+import com.veemarket.bid.BidResponse;
+import com.veemarket.bid.BidService;
 import com.veemarket.farm.Farm;
 import com.veemarket.farm.FarmRequest;
 import com.veemarket.farm.FarmService;
@@ -26,15 +28,18 @@ public class FarmerController {
     private final FarmService farmService;
     private final PaddyLotService paddyLotService;
     private final MoistureReadingService moistureReadingService;
+    private final BidService bidService;
 
     public FarmerController(
             FarmService farmService,
             PaddyLotService paddyLotService,
-            MoistureReadingService moistureReadingService
+            MoistureReadingService moistureReadingService,
+            BidService bidService
     ) {
         this.farmService = farmService;
         this.paddyLotService = paddyLotService;
         this.moistureReadingService = moistureReadingService;
+        this.bidService = bidService;
     }
 
     @GetMapping("/me")
@@ -133,5 +138,32 @@ public class FarmerController {
         User user = (User) authentication.getPrincipal();
 
         return moistureReadingService.getLatestReading(user, lotId);
+    }
+
+    @GetMapping("/lots/{lotId}/bids")
+    public List<BidResponse> getLotBids(
+            Authentication authentication,
+            @PathVariable Long lotId
+    ) {
+        User user = (User) authentication.getPrincipal();
+        return bidService.getLotBids(user, lotId);
+    }
+
+    @PostMapping("/bids/{bidId}/accept")
+    public BidResponse acceptBid(
+            Authentication authentication,
+            @PathVariable Long bidId
+    ) {
+        User user = (User) authentication.getPrincipal();
+        return bidService.acceptBid(user, bidId);
+    }
+
+    @PostMapping("/bids/{bidId}/reject")
+    public BidResponse rejectBid(
+            Authentication authentication,
+            @PathVariable Long bidId
+    ) {
+        User user = (User) authentication.getPrincipal();
+        return bidService.rejectBid(user, bidId);
     }
 }
