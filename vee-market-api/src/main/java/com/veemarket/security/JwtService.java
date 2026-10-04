@@ -14,15 +14,24 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private static final String SECRET =
-            "vee-market-development-secret-key-change-this-later-2026";
-
     private static final long EXPIRATION_MS =
             1000L * 60 * 60 * 24;
 
-    private final SecretKey key = Keys.hmacShaKeyFor(
-            SECRET.getBytes(StandardCharsets.UTF_8)
-    );
+    private final SecretKey key;
+
+    public JwtService() {
+        String secret = System.getenv("JWT_SECRET");
+
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "JWT_SECRET environment variable is not configured"
+            );
+        }
+
+        key = Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
+        );
+    }
 
     public String generateToken(User user) {
 
@@ -39,7 +48,6 @@ public class JwtService {
     }
 
     public String extractEmail(String token) {
-
         return getClaims(token).getSubject();
     }
 
