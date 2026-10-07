@@ -1,128 +1,51 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import {
+  FormEvent,
+  useState,
+} from "react";
+
 import { useRouter } from "next/navigation";
+
+import {
+  useLanguage,
+} from "../components/LanguageProvider";
+
+import LanguageSwitcher from "../components/LanguageSwitcher";
+import ThemeSwitcher from "../components/ThemeSwitcher";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "http://172.18.228.12:8080";
 
-type Language = "en" | "si";
+function getTokenRole(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    const normalized = payload
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const decoded = JSON.parse(
+      atob(normalized)
+    ) as { role?: string };
 
-const translations = {
-  en: {
-    brand: "Vee Market",
-    tagline: "From Farm to Future",
-    heroTitle: "Connecting Farmers, Mills and Businesses",
-    heroDescription:
-      "A trusted marketplace for paddy and rice in Sri Lanka.",
-
-    fairMarket: "Fair Market",
-    trustedNetwork: "Trusted Network",
-    reliableSupply: "Reliable Supply",
-
-    welcome: "Welcome Back",
-    loginDescription: "Login to continue to your account",
-
-    email: "Email address",
-    password: "Password",
-
-    emailPlaceholder: "example@gmail.com",
-    passwordPlaceholder: "Enter your password",
-
-    rememberMe: "Remember me",
-    forgotPassword: "Forgot password?",
-
-    login: "Login",
-    loggingIn: "Signing in...",
-
-    continueWith: "or continue with",
-    google: "Continue with Google",
-
-    noAccount: "Don't have an account?",
-    signup: "Sign up",
-
-    secure: "Secure marketplace authentication",
-
-    connectionError:
-      "Unable to connect to the server.",
-
-    unexpectedResponse:
-      "The server returned an unexpected response. Please check the API connection.",
-
-    loginError:
-      "Invalid email or password.",
-
-    networkError:
-      "Network error. Please make sure the backend is running.",
-  },
-
-  si: {
-    brand: "වී මාර්කට්",
-    tagline: "ගොවිපළේ සිට අනාගතයට",
-
-    heroTitle:
-      "ගොවීන්, මෝල් සහ ව්‍යාපාර සම්බන්ධ කරමු",
-
-    heroDescription:
-      "ශ්‍රී ලංකාවේ වී සහ සහල් සඳහා විශ්වාසදායක වෙළඳපොළක්.",
-
-    fairMarket: "සාධාරණ වෙළඳපොළ",
-    trustedNetwork: "විශ්වාසදායක ජාලය",
-    reliableSupply: "විශ්වාසදායක සැපයුම",
-
-    welcome: "ආයුබෝවන්!",
-    loginDescription:
-      "ඔබගේ ගිණුමට ඇතුළු වන්න",
-
-    email: "විද්‍යුත් තැපෑල",
-    password: "මුරපදය",
-
-    emailPlaceholder: "example@gmail.com",
-    passwordPlaceholder:
-      "ඔබගේ මුරපදය ඇතුළත් කරන්න",
-
-    rememberMe: "මාව මතක තබා ගන්න",
-    forgotPassword: "මුරපදය අමතකද?",
-
-    login: "ඇතුළු වන්න",
-    loggingIn: "ඇතුළු වෙමින්...",
-
-    continueWith: "හෝ",
-    google: "Google සමඟ පිවිසෙන්න",
-
-    noAccount: "ගිණුමක් නැද්ද?",
-    signup: "ලියාපදිංචි වන්න",
-
-    secure:
-      "ආරක්ෂිත වෙළඳපොළ සත්‍යාපනය",
-
-    connectionError:
-      "සේවාදායකයට සම්බන්ධ වීමට නොහැක.",
-
-    unexpectedResponse:
-      "සේවාදායකයෙන් අනපේක්ෂිත ප්‍රතිචාරයක් ලැබුණි.",
-
-    loginError:
-      "විද්‍යුත් තැපෑල හෝ මුරපදය වැරදියි.",
-
-    networkError:
-      "ජාල දෝෂයකි. Backend එක ක්‍රියාත්මක දැයි පරීක්ෂා කරන්න.",
-  },
-};
+    return decoded.role || "";
+  } catch {
+    return "";
+  }
+}
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const [language, setLanguage] =
-    useState<Language>("en");
+  const {
+    t,
+  } = useLanguage();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] =
+  const [email, setEmail] =
     useState("");
 
-  const [rememberMe, setRememberMe] =
-    useState(true);
+  const [password, setPassword] =
+    useState("");
 
   const [showPassword, setShowPassword] =
     useState(false);
@@ -133,114 +56,117 @@ export default function LoginPage() {
   const [error, setError] =
     useState("");
 
-  const t = translations[language];
+  const [success, setSuccess] =
+    useState("");
 
   async function handleLogin(
     event: FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
-    setLoading(true);
     setError("");
+    setSuccess("");
 
-    const loginUrl =
-      `${API_URL}/api/auth/login`;
+    if (!email.trim()) {
+      setError(t.login.loginError);
+      return;
+    }
+
+    if (!password) {
+      setError(t.login.loginError);
+      return;
+    }
 
     try {
-      console.log(
-        "Vee Market login:",
-        loginUrl
-      );
+      setLoading(true);
 
-      const response = await fetch(
-        loginUrl,
-        {
-          method: "POST",
+      const response =
+        await fetch(
+          `${API_URL}/api/auth/login`,
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
+            headers: {
+              "Content-Type":
+                "application/json",
 
-            Accept:
-              "application/json",
-          },
+              Accept:
+                "application/json",
+            },
 
-          body: JSON.stringify({
-            email: email.trim(),
-            password,
-          }),
-        }
-      );
+            body: JSON.stringify({
+              email: email.trim(),
+              password,
+            }),
+          }
+        );
 
       const contentType =
         response.headers.get(
           "content-type"
         ) || "";
 
-      /*
-       * Read text first.
-       * This prevents:
-       *
-       * Unexpected token '<'
-       */
-
       const rawResponse =
         await response.text();
 
-      console.log(
-        "Login status:",
-        response.status
-      );
-
-      console.log(
-        "Login response:",
-        rawResponse
-      );
+      let data: {
+        token?: string;
+        accessToken?: string;
+        jwt?: string;
+        userId?: number;
+        email?: string;
+        role?: string;
+        message?: string;
+        error?: string;
+      } | null = null;
 
       if (
-        !contentType
+        rawResponse &&
+        contentType
           .toLowerCase()
-          .includes(
-            "application/json"
-          )
+          .includes("application/json")
       ) {
-        console.error(
-          "Expected JSON but received:",
-          rawResponse.substring(0, 500)
-        );
-
-        throw new Error(
-          t.unexpectedResponse
-        );
-      }
-
-      let data: any;
-
-      try {
-        data =
-          JSON.parse(rawResponse);
-      } catch {
-        throw new Error(
-          t.unexpectedResponse
-        );
+        try {
+          data =
+            JSON.parse(
+              rawResponse
+            );
+        } catch {
+          data = null;
+        }
       }
 
       if (!response.ok) {
         throw new Error(
           data?.message ||
             data?.error ||
-            t.loginError
+            t.login.loginError
         );
       }
 
-      if (!data?.token) {
-        console.error(
-          "No token returned:",
-          data
-        );
+      /*
+       * Backend normally returns:
+       *
+       * {
+       *   token: "...",
+       *   userId: 1,
+       *   email: "...",
+       *   role: "FARMER"
+       * }
+       *
+       * We support a few common
+       * property names so the frontend
+       * remains flexible.
+       */
 
+      const token =
+        data?.token ||
+        data?.accessToken ||
+        data?.jwt;
+
+      if (!token) {
         throw new Error(
-          t.loginError
+          t.login.loginError
         );
       }
 
@@ -249,51 +175,87 @@ export default function LoginPage() {
        */
 
       localStorage.setItem(
-        "vee_market_token",
-        data.token
+        "vee-market-token",
+        token
       );
 
-      if (data.userId) {
+      if (
+        data?.userId !== undefined &&
+        data?.userId !== null
+      ) {
         localStorage.setItem(
-          "vee_market_user_id",
+          "vee-market-user-id",
           String(data.userId)
         );
       }
 
-      if (data.role) {
+      if (data?.email) {
         localStorage.setItem(
-          "vee_market_role",
-          String(data.role)
+          "vee-market-user-email",
+          data.email
+        );
+      } else {
+        localStorage.setItem(
+          "vee-market-user-email",
+          email.trim()
         );
       }
 
-      localStorage.setItem(
-        "vee_market_email",
-        email.trim()
-      );
-
-      if (rememberMe) {
+      if (data?.role) {
         localStorage.setItem(
-          "vee_market_remember",
-          "true"
-        );
-      } else {
-        localStorage.removeItem(
-          "vee_market_remember"
+          "vee-market-user-role",
+          data.role
         );
       }
 
       /*
-       * Redirect.
+       * Keep the old token key too
+       * if other existing frontend
+       * code uses it.
        */
 
-      router.push(
-        "/dashboard"
+      localStorage.setItem(
+        "token",
+        token
       );
+
+      setSuccess(
+        t.login.loginSuccess
+      );
+
+      const loginRole =
+        data?.role ||
+        getTokenRole(token) ||
+        localStorage.getItem(
+          "vee-market-user-role"
+        );
+
+      if (loginRole) {
+        localStorage.setItem(
+          "vee-market-user-role",
+          loginRole
+        );
+      }
+
+      /*
+       * Redirect to dashboard.
+       */
+
+      setTimeout(() => {
+        router.push(
+          loginRole === "MILL"
+            ? "/dashboard/mill"
+            : loginRole === "BUYER"
+            ? "/dashboard/business"
+            : loginRole === "ADMIN"
+            ? "/dashboard/admin"
+            : "/dashboard"
+        );
+      }, 500);
 
     } catch (err) {
       console.error(
-        "LOGIN ERROR:",
+        "Login error:",
         err
       );
 
@@ -301,7 +263,7 @@ export default function LoginPage() {
         err instanceof TypeError
       ) {
         setError(
-          t.networkError
+          t.login.connectionError
         );
       } else if (
         err instanceof Error
@@ -311,60 +273,76 @@ export default function LoginPage() {
         );
       } else {
         setError(
-          t.loginError
+          t.login.loginError
         );
       }
-
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-[#edf5ef]">
-
+    <main
+      className="
+        min-h-screen
+        bg-[#edf5ef]
+        dark:bg-background
+      "
+    >
       <div
         className="
-          mx-auto min-h-screen w-full
-          max-w-[1700px] xl:p-6
+          mx-auto
+          min-h-screen
+          w-full
+          max-w-[1700px]
+          xl:p-6
         "
       >
-
         <div
           className="
-            relative flex min-h-screen
-            flex-col overflow-hidden
+            relative
+            flex
+            min-h-screen
+            flex-col
+            overflow-hidden
             bg-white
+            dark:bg-surface
 
-            xl:min-h-[calc(100vh-48px)]
             xl:flex-row
+            xl:min-h-[calc(100vh-48px)]
             xl:rounded-[30px]
             xl:shadow-[0_20px_70px_rgba(0,0,0,0.12)]
           "
         >
 
-          {/* HERO */}
+          {/* ==================================================
+              LEFT HERO
+          ================================================== */}
 
           <section
             className="
-              relative flex min-h-[460px]
-              w-full flex-col justify-end
+              relative
+              flex
+              min-h-[430px]
+              w-full
+              flex-col
+              justify-end
               overflow-hidden
 
-              sm:min-h-[520px]
-              md:min-h-[560px]
-
+              sm:min-h-[500px]
               xl:min-h-0
               xl:w-[55%]
             "
           >
 
+            {/* HERO IMAGE */}
+
             <div
               className="
-                absolute inset-0
+                absolute
+                inset-0
                 bg-cover
                 bg-center
-                bg-no-repeat
               "
               style={{
                 backgroundImage:
@@ -372,106 +350,141 @@ export default function LoginPage() {
               }}
             />
 
+            {/* DARK GRADIENT */}
+
             <div
               className="
-                absolute inset-0
+                absolute
+                inset-0
                 bg-gradient-to-t
-                from-[#04351f]/85
-                via-[#04351f]/30
-                to-[#04351f]/5
+                from-[#04351f]/95
+                via-[#04351f]/45
+                to-transparent
               "
             />
 
-            {/* Logo */}
+            {/* ==================================================
+                BRAND
+            ================================================== */}
 
             <div
               className="
-                absolute left-5 top-5
-                z-10 flex items-center gap-3
+                absolute
+                left-5
+                top-5
+                z-10
 
-                sm:left-8 sm:top-8
-                xl:left-10 xl:top-10
+                flex
+                items-center
+                gap-3
+
+                sm:left-8
+                sm:top-8
               "
             >
 
               <div
                 className="
-                  flex h-11 w-11
-                  items-center justify-center
-                  rounded-xl bg-white/90
-                  shadow-lg backdrop-blur
+                  flex
+                  h-11
+                  w-11
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-white/90
+                  shadow-lg
                 "
               >
-                <LeafLogo dark />
+                <LeafLogo />
               </div>
 
               <div>
-                <h1 className="text-lg font-bold text-white">
-                  {t.brand}
+
+                <h1
+                  className="
+                    text-lg
+                    font-bold
+                    text-white
+                  "
+                >
+                  {t.brand.name}
                 </h1>
 
-                <p className="text-xs text-white/80">
-                  {t.tagline}
+                <p
+                  className="
+                    text-xs
+                    text-white/80
+                  "
+                >
+                  {t.brand.tagline}
                 </p>
+
               </div>
 
             </div>
 
-            {/* Hero content */}
+            {/* ==================================================
+                HERO CONTENT
+            ================================================== */}
 
             <div
               className="
-                relative z-10 w-full
+                relative
+                z-10
                 p-5
 
                 sm:p-8
                 md:p-10
                 xl:p-14
-                2xl:p-16
               "
             >
 
-              <div className="max-w-[650px]">
+              <div
+                className="
+                  max-w-[650px]
+                "
+              >
 
                 <h2
                   className="
-                    max-w-[600px]
-                    text-3xl font-bold
-                    leading-[1.08]
+                    text-3xl
+                    font-bold
+                    leading-tight
                     tracking-tight
                     text-white
-                    drop-shadow-lg
 
                     sm:text-4xl
                     md:text-5xl
-                    xl:text-[58px]
-                    2xl:text-[64px]
+                    xl:text-[56px]
                   "
                 >
-                  {t.heroTitle}
+                  {t.login.heroTitle}
                 </h2>
 
                 <p
                   className="
-                    mt-4 max-w-[560px]
-                    text-sm leading-6
+                    mt-4
+                    max-w-[560px]
+                    text-sm
+                    leading-6
                     text-white/90
 
                     sm:text-base
                     md:text-lg
-                    md:leading-7
                   "
                 >
-                  {t.heroDescription}
+                  {t.login.heroDescription}
                 </p>
+
+                {/* FEATURES */}
 
                 <div
                   className="
-                    mt-6 grid
-                    max-w-[580px]
-                    grid-cols-3 gap-2
+                    mt-6
+                    grid
+                    grid-cols-3
+                    gap-2
 
-                    sm:mt-7
                     sm:gap-3
                     md:gap-4
                   "
@@ -479,46 +492,26 @@ export default function LoginPage() {
 
                   <Feature
                     icon="🌱"
-                    title={t.fairMarket}
+                    title={
+                      t.login.fairMarket
+                    }
                   />
 
                   <Feature
                     icon="🤝"
-                    title={t.trustedNetwork}
+                    title={
+                      t.login
+                        .trustedNetwork
+                    }
                   />
 
                   <Feature
                     icon="🚚"
-                    title={t.reliableSupply}
+                    title={
+                      t.login
+                        .reliableSupply
+                    }
                   />
-
-                </div>
-
-                <div className="mt-6">
-
-                  <p
-                    className="
-                      font-serif text-xl
-                      italic text-white
-
-                      sm:text-2xl
-                      md:text-3xl
-                    "
-                  >
-                    {t.brand}
-                  </p>
-
-                  <div
-                    className="
-                      mt-2 h-1 w-28
-                      rounded-full
-                      bg-green-400
-                    "
-                  />
-
-                  <p className="mt-2 text-xs text-white sm:text-sm">
-                    {t.tagline}
-                  </p>
 
                 </div>
 
@@ -528,13 +521,23 @@ export default function LoginPage() {
 
           </section>
 
-          {/* LOGIN */}
+          {/* ==================================================
+              RIGHT LOGIN PANEL
+          ================================================== */}
 
           <section
             className="
-              relative flex w-full flex-1
-              items-center justify-center
-              bg-white px-5 py-10
+              relative
+              flex
+              w-full
+              flex-1
+              items-center
+              justify-center
+              bg-white
+              dark:bg-surface
+
+              px-5
+              py-10
 
               sm:px-8
               md:px-12
@@ -542,226 +545,214 @@ export default function LoginPage() {
               xl:w-[45%]
               xl:px-14
               xl:py-10
-
-              2xl:px-20
             "
           >
 
-            {/* Language */}
+            {/* ==================================================
+                LANGUAGE SWITCHER
+            ================================================== */}
 
             <div
               className="
-                absolute right-4 top-4
-                z-20
+                absolute
+                right-4
+                top-4
 
-                sm:right-7 sm:top-7
-                xl:right-9 xl:top-9
+                sm:right-7
+                sm:top-7
               "
             >
-
-              <div
-                className="
-                  flex rounded-full
-                  border border-slate-200
-                  bg-slate-50 p-1
-                "
-              >
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setLanguage("si")
-                  }
-                  className={`
-                    rounded-full
-                    px-3 py-2
-                    text-xs font-medium
-                    transition
-
-                    sm:px-4 sm:text-sm
-
-                    ${
-                      language === "si"
-                        ? "bg-[#087f3f] text-white"
-                        : "text-slate-600"
-                    }
-                  `}
-                >
-                  සිංහල
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setLanguage("en")
-                  }
-                  className={`
-                    rounded-full
-                    px-3 py-2
-                    text-xs font-medium
-                    transition
-
-                    sm:px-4 sm:text-sm
-
-                    ${
-                      language === "en"
-                        ? "bg-[#087f3f] text-white"
-                        : "text-slate-600"
-                    }
-                  `}
-                >
-                  English
-                </button>
-
+              <div className="flex items-center gap-2">
+                <ThemeSwitcher />
+              <LanguageSwitcher />
               </div>
-
             </div>
 
             <div
               className="
-                w-full max-w-[460px]
-                pt-12
+                w-full
+                max-w-[450px]
+                pt-10
 
                 sm:pt-14
                 xl:pt-4
               "
             >
 
-              {/* Logo */}
+              {/* ==================================================
+                  LOGO
+              ================================================== */}
 
-              <div className="mb-6 text-center">
+              <div
+                className="
+                  mb-7
+                  text-center
+                "
+              >
 
                 <div
                   className="
-                    mx-auto flex h-14 w-14
-                    items-center justify-center
-                    rounded-2xl bg-green-50
+                    mx-auto
+                    flex
+                    h-14
+                    w-14
+                    items-center
+                    justify-center
+                    rounded-2xl
+                    bg-green-50
                   "
                 >
-                  <LeafLogo dark />
+                  <LeafLogo />
                 </div>
 
                 <h2
                   className="
-                    mt-3 text-xl font-bold
+                    mt-3
+                    text-xl
+                    font-bold
                     text-[#063b25]
 
                     sm:text-2xl
                   "
                 >
-                  {t.brand}
+                  {t.brand.name}
                 </h2>
 
               </div>
 
-              {/* Welcome */}
+              {/* ==================================================
+                  TITLE
+              ================================================== */}
 
-              <div className="text-center">
+              <div
+                className="
+                  text-center
+                "
+              >
 
                 <h3
                   className="
-                    text-3xl font-bold
+                    text-3xl
+                    font-bold
                     tracking-tight
                     text-slate-900
 
                     sm:text-4xl
                   "
                 >
-                  {t.welcome}
+                  {t.login.title}
                 </h3>
 
-                <p className="mt-2 text-sm text-slate-500 sm:text-base">
-                  {t.loginDescription}
+                <p
+                  className="
+                    mt-2
+                    text-sm
+                    text-slate-500
+
+                    sm:text-base
+                  "
+                >
+                  {t.login.description}
                 </p>
 
               </div>
 
-              {/* Form */}
+              {/* ==================================================
+                  FORM
+              ================================================== */}
 
               <form
-                onSubmit={handleLogin}
-                className="mt-7 space-y-5"
+                onSubmit={
+                  handleLogin
+                }
+                className="
+                  mt-8
+                  space-y-5
+                "
               >
 
-                {/* Email */}
+                {/* EMAIL */}
 
                 <div>
 
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
-                    {t.email}
+                  <label
+                    htmlFor="email"
+                    className="
+                      mb-2
+                      block
+                      text-sm
+                      font-medium
+                      text-slate-700
+                    "
+                  >
+                    {t.login.email}
                   </label>
 
-                  <div className="relative">
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) =>
+                      setEmail(
+                        event.target
+                          .value
+                      )
+                    }
+                    placeholder={
+                      t.login
+                        .emailPlaceholder
+                    }
+                    className="
+                      h-14
+                      w-full
+                      rounded-xl
+                      border
+                      border-slate-200
+                      bg-slate-50
+                      px-4
+                      text-sm
+                      text-slate-900
+                      outline-none
+                      transition
 
-                    <div
-                      className="
-                        pointer-events-none
-                        absolute left-4 top-1/2
-                        -translate-y-1/2
-                        text-slate-400
-                      "
-                    >
-                      <MailIcon />
-                    </div>
+                      placeholder:text-slate-400
 
-                    <input
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) =>
-                        setEmail(
-                          e.target.value
-                        )
-                      }
-                      placeholder={
-                        t.emailPlaceholder
-                      }
-                      className="
-                        h-14 w-full
-                        rounded-xl
-                        border border-slate-200
-                        bg-slate-50
-                        pl-12 pr-4
-                        text-sm text-slate-900
-                        outline-none
-                        transition
-
-                        placeholder:text-slate-400
-
-                        focus:border-[#087f3f]
-                        focus:bg-white
-                        focus:ring-4
-                        focus:ring-green-100
-                      "
-                    />
-
-                  </div>
+                      focus:border-[#087f3f]
+                      focus:bg-white
+                      focus:ring-4
+                      focus:ring-green-100
+                    "
+                  />
 
                 </div>
 
-                {/* Password */}
+                {/* PASSWORD */}
 
                 <div>
 
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
-                    {t.password}
+                  <label
+                    htmlFor="password"
+                    className="
+                      mb-2
+                      block
+                      text-sm
+                      font-medium
+                      text-slate-700
+                    "
+                  >
+                    {t.login.password}
                   </label>
 
-                  <div className="relative">
-
-                    <div
-                      className="
-                        pointer-events-none
-                        absolute left-4 top-1/2
-                        -translate-y-1/2
-                        text-slate-400
-                      "
-                    >
-                      <LockIcon />
-                    </div>
+                  <div
+                    className="
+                      relative
+                    "
+                  >
 
                     <input
+                      id="password"
                       type={
                         showPassword
                           ? "text"
@@ -769,22 +760,32 @@ export default function LoginPage() {
                       }
                       required
                       autoComplete="current-password"
-                      value={password}
-                      onChange={(e) =>
+                      value={
+                        password
+                      }
+                      onChange={(
+                        event
+                      ) =>
                         setPassword(
-                          e.target.value
+                          event.target
+                            .value
                         )
                       }
                       placeholder={
-                        t.passwordPlaceholder
+                        t.login
+                          .passwordPlaceholder
                       }
                       className="
-                        h-14 w-full
+                        h-14
+                        w-full
                         rounded-xl
-                        border border-slate-200
+                        border
+                        border-slate-200
                         bg-slate-50
-                        pl-12 pr-12
-                        text-sm text-slate-900
+                        px-4
+                        pr-12
+                        text-sm
+                        text-slate-900
                         outline-none
                         transition
 
@@ -804,11 +805,19 @@ export default function LoginPage() {
                           !showPassword
                         )
                       }
+                      aria-label={
+                        showPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
                       className="
-                        absolute right-4
+                        absolute
+                        right-4
                         top-1/2
                         -translate-y-1/2
                         text-slate-400
+                        transition
+                        hover:text-slate-700
                       "
                     >
                       {showPassword ? (
@@ -822,65 +831,18 @@ export default function LoginPage() {
 
                 </div>
 
-                {/* Remember */}
-
-                <div
-                  className="
-                    flex flex-wrap
-                    items-center
-                    justify-between
-                    gap-3
-                  "
-                >
-
-                  <label
-                    className="
-                      flex cursor-pointer
-                      items-center gap-2
-                      text-sm text-slate-600
-                    "
-                  >
-
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) =>
-                        setRememberMe(
-                          e.target.checked
-                        )
-                      }
-                      className="
-                        h-4 w-4
-                        accent-[#087f3f]
-                      "
-                    />
-
-                    {t.rememberMe}
-
-                  </label>
-
-                  <button
-                    type="button"
-                    className="
-                      text-sm font-medium
-                      text-[#087f3f]
-                    "
-                  >
-                    {t.forgotPassword}
-                  </button>
-
-                </div>
-
-                {/* Error */}
+                {/* ERROR */}
 
                 {error && (
                   <div
                     role="alert"
                     className="
                       rounded-xl
-                      border border-red-100
+                      border
+                      border-red-100
                       bg-red-50
-                      px-4 py-3
+                      px-4
+                      py-3
                       text-sm
                       text-red-700
                     "
@@ -889,16 +851,43 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* Login */}
+                {/* SUCCESS */}
+
+                {success && (
+                  <div
+                    role="status"
+                    className="
+                      rounded-xl
+                      border
+                      border-green-100
+                      bg-green-50
+                      px-4
+                      py-3
+                      text-sm
+                      text-green-700
+                    "
+                  >
+                    {success}
+                  </div>
+                )}
+
+                {/* ==================================================
+                    LOGIN BUTTON
+                ================================================== */}
 
                 <button
                   type="submit"
                   disabled={loading}
                   className="
-                    h-14 w-full
+                    flex
+                    h-14
+                    w-full
+                    items-center
+                    justify-center
                     rounded-xl
                     bg-[#087f3f]
-                    text-base font-semibold
+                    text-base
+                    font-semibold
                     text-white
                     shadow-lg
                     transition
@@ -909,74 +898,81 @@ export default function LoginPage() {
                     disabled:opacity-60
                   "
                 >
-                  {loading
-                    ? t.loggingIn
-                    : t.login}
-                </button>
 
-                {/* Divider */}
+                  {loading ? (
+                    <span
+                      className="
+                        flex
+                        items-center
+                        gap-2
+                      "
+                    >
+                      <span
+                        className="
+                          h-5
+                          w-5
+                          animate-spin
+                          rounded-full
+                          border-2
+                          border-white/30
+                          border-t-white
+                        "
+                      />
 
-                <div className="flex items-center gap-3 py-1">
+                      {
+                        t.login
+                          .loggingIn
+                      }
+                    </span>
+                  ) : (
+                    t.login.login
+                  )}
 
-                  <div className="h-px flex-1 bg-slate-200" />
-
-                  <span className="text-xs text-slate-400">
-                    {t.continueWith}
-                  </span>
-
-                  <div className="h-px flex-1 bg-slate-200" />
-
-                </div>
-
-                {/* Google */}
-
-                <button
-                  type="button"
-                  className="
-                    flex h-14 w-full
-                    items-center
-                    justify-center gap-3
-                    rounded-xl
-                    border border-slate-200
-                    bg-white
-                    text-sm font-medium
-                    text-slate-700
-
-                    hover:bg-slate-50
-                  "
-                >
-                  <GoogleIcon />
-                  {t.google}
                 </button>
 
               </form>
 
-              {/* Register */}
+              {/* ==================================================
+                  REGISTER
+              ================================================== */}
 
-              <p className="mt-6 text-center text-sm text-slate-500">
+              <p
+                className="
+                  mt-7
+                  text-center
+                  text-sm
+                  text-slate-500
+                "
+              >
 
-                {t.noAccount}{" "}
+                {t.login.noAccount}{" "}
 
                 <button
                   type="button"
                   onClick={() =>
-                    router.push("/register")
+                    router.push(
+                      "/register"
+                    )
                   }
                   className="
                     font-semibold
                     text-[#087f3f]
+                    hover:underline
                   "
                 >
-                  {t.signup}
+                  {t.login.createAccount}
                 </button>
 
               </p>
 
-              {/* Security */}
+              {/* ==================================================
+                  SECURITY
+              ================================================== */}
 
               <div
                 className="
-                  mt-7 flex
+                  mt-8
+                  flex
                   items-center
                   justify-center
                   gap-2
@@ -987,7 +983,9 @@ export default function LoginPage() {
 
                 <span
                   className="
-                    flex h-6 w-6
+                    flex
+                    h-6
+                    w-6
                     items-center
                     justify-center
                     rounded-full
@@ -998,7 +996,7 @@ export default function LoginPage() {
                   ✓
                 </span>
 
-                {t.secure}
+                Secure Vee Market login
 
               </div>
 
@@ -1009,14 +1007,13 @@ export default function LoginPage() {
         </div>
 
       </div>
-
     </main>
   );
 }
 
-/* =========================================================
-   FEATURE
-========================================================= */
+/* ============================================================
+   FEATURE CARD
+============================================================ */
 
 function Feature({
   icon,
@@ -1029,9 +1026,11 @@ function Feature({
     <div
       className="
         rounded-xl
-        border border-white/20
+        border
+        border-white/20
         bg-white/15
-        px-2 py-3
+        px-2
+        py-3
         text-center
         backdrop-blur-md
 
@@ -1040,7 +1039,13 @@ function Feature({
         sm:py-4
       "
     >
-      <div className="text-xl sm:text-2xl">
+
+      <div
+        className="
+          text-xl
+          sm:text-2xl
+        "
+      >
         {icon}
       </div>
 
@@ -1058,124 +1063,70 @@ function Feature({
       >
         {title}
       </p>
+
     </div>
   );
 }
 
-/* =========================================================
-   LOGO
-========================================================= */
+/* ============================================================
+   VEE MARKET LEAF LOGO
+============================================================ */
 
-function LeafLogo({
-  dark = false,
-}: {
-  dark?: boolean;
-}) {
+function LeafLogo() {
   return (
-    <div className="relative h-9 w-9">
+    <div
+      className="
+        relative
+        h-9
+        w-9
+      "
+    >
 
       <div
-        className={`
-          absolute left-4 top-0
-          h-7 w-4
+        className="
+          absolute
+          left-4
+          top-0
+          h-7
+          w-4
           rotate-[-18deg]
           rounded-[100%_0_100%_0]
-          ${
-            dark
-              ? "bg-[#087f3f]"
-              : "bg-white"
-          }
-        `}
+          bg-[#087f3f]
+        "
       />
 
       <div
-        className={`
-          absolute left-1 top-4
-          h-6 w-4
+        className="
+          absolute
+          left-1
+          top-4
+          h-6
+          w-4
           rotate-[-42deg]
           rounded-[100%_0_100%_0]
-          opacity-80
-          ${
-            dark
-              ? "bg-[#41a85f]"
-              : "bg-white"
-          }
-        `}
+          bg-[#41a85f]
+        "
       />
 
       <div
-        className={`
-          absolute bottom-0 left-5
-          h-5 w-[2px]
+        className="
+          absolute
+          bottom-0
+          left-5
+          h-5
+          w-[2px]
           rotate-[20deg]
-          ${
-            dark
-              ? "bg-[#087f3f]"
-              : "bg-white"
-          }
-        `}
+          bg-[#087f3f]
+        "
       />
 
     </div>
   );
 }
 
-/* =========================================================
-   MAIL
-========================================================= */
-
-function MailIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    >
-      <rect
-        x="3"
-        y="5"
-        width="18"
-        height="14"
-        rx="2"
-      />
-      <path d="m3 7 9 6 9-6" />
-    </svg>
-  );
-}
-
-/* =========================================================
-   LOCK
-========================================================= */
-
-function LockIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    >
-      <rect
-        x="5"
-        y="10"
-        width="14"
-        height="10"
-        rx="2"
-      />
-
-      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
-
-/* =========================================================
-   EYE
-========================================================= */
+/* ============================================================
+   EYE ICON
+============================================================ */
 
 function EyeIcon() {
   return (
@@ -1186,6 +1137,8 @@ function EyeIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
 
@@ -1198,9 +1151,9 @@ function EyeIcon() {
   );
 }
 
-/* =========================================================
-   EYE OFF
-========================================================= */
+/* ============================================================
+   EYE OFF ICON
+============================================================ */
 
 function EyeOffIcon() {
   return (
@@ -1211,6 +1164,8 @@ function EyeOffIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path d="m3 3 18 18" />
 
@@ -1219,40 +1174,6 @@ function EyeOffIcon() {
       <path d="M6.5 9.1C4.1 10.4 2.5 12 2.5 12s3.5 6 9.5 6c1.1 0 2.1-.2 3-.5" />
 
       <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    </svg>
-  );
-}
-
-/* =========================================================
-   GOOGLE
-========================================================= */
-
-function GoogleIcon() {
-  return (
-    <svg
-      width="21"
-      height="21"
-      viewBox="0 0 24 24"
-    >
-      <path
-        fill="#4285F4"
-        d="M21.35 12.27c0-.79-.07-1.55-.22-2.27H12v4.3h5.23a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.92-4.18 2.92-7.42Z"
-      />
-
-      <path
-        fill="#34A853"
-        d="M12 21.75c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.75 9.75 0 0 0 12 21.75Z"
-      />
-
-      <path
-        fill="#FBBC05"
-        d="M6.54 13.83A5.86 5.86 0 0 1 6.23 12c0-.64.11-1.26.31-1.83V7.64H3.3A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.05 4.36l3.24-2.53Z"
-      />
-
-      <path
-        fill="#EA4335"
-        d="M12 6.14c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.83 3.21 14.63 2.25 12 2.25a9.75 9.75 0 0 0-8.7 5.39l3.24 2.53c.77-2.31 2.92-4.03 5.46-4.03Z"
-      />
     </svg>
   );
 }

@@ -28,6 +28,14 @@ public class RegisterRequest {
     @Size(max = 100)
     private String deviceNumber;
 
+    private String businessType;
+
+    @Size(max = 150)
+    private String businessName;
+
+    @Size(max = 255)
+    private String businessLocation;
+
     public String getName() {
         return name;
     }
@@ -74,5 +82,29 @@ public class RegisterRequest {
 
     public void setDeviceNumber(String deviceNumber) {
         this.deviceNumber = deviceNumber;
+    }
+
+    public String getBusinessType() {
+        return businessType;
+    }
+
+    public void setBusinessType(String businessType) {
+        this.businessType = businessType;
+    }
+
+    public String getBusinessName() {
+        return businessName;
+    }
+
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
+    }
+
+    public String getBusinessLocation() {
+        return businessLocation;
+    }
+
+    public void setBusinessLocation(String businessLocation) {
+        this.businessLocation = businessLocation;
     }
 }

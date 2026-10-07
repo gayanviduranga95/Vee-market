@@ -98,17 +98,46 @@ public class PaddyLotService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public PaddyLotResponse getLot(User user, Long lotId) {
+
+        FarmerProfile farmer = farmerProfileRepository
+                .findByUserId(user.getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Farmer profile not found"
+                        )
+                );
+
+        PaddyLot lot = paddyLotRepository.findById(lotId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Paddy lot not found"
+                        )
+                );
+
+        if (!lot.getFarm().getFarmer().getId().equals(farmer.getId())) {
+            throw new IllegalArgumentException(
+                    "You can only view your own lots"
+            );
+        }
+
+        return toResponse(lot);
+    }
+
     private PaddyLotResponse toResponse(PaddyLot lot) {
 
         return new PaddyLotResponse(
                 lot.getId(),
-                lot.getFarm().getId(),
+                lot.getFarm() != null ? lot.getFarm().getId() : null,
+                lot.getFarm() != null ? lot.getFarm().getFarmName() : null,
                 lot.getProductType(),
                 lot.getRiceType(),
                 lot.getQuantityKg(),
                 lot.getAskingPricePerKg(),
                 lot.getAvailableDate(),
-                lot.getStatus()
+                lot.getStatus(),
+                lot.getCreatedAt()
         );
     }
 }

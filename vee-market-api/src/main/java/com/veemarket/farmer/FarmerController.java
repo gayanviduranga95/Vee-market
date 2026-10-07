@@ -2,9 +2,9 @@ package com.veemarket.farmer;
 
 import com.veemarket.bid.BidResponse;
 import com.veemarket.bid.BidService;
-import com.veemarket.farm.Farm;
-import com.veemarket.farm.FarmRequest;
-import com.veemarket.farm.FarmService;
+import com.veemarket.deal.DealResponse;
+import com.veemarket.deal.DealService;
+import com.veemarket.deal.DealStatusUpdateRequest;
 import com.veemarket.listing.PaddyLotRequest;
 import com.veemarket.listing.PaddyLotService;
 import com.veemarket.listing.dto.PaddyLotResponse;
@@ -25,21 +25,21 @@ import java.util.Map;
 @RequestMapping("/api/farmer")
 public class FarmerController {
 
-    private final FarmService farmService;
     private final PaddyLotService paddyLotService;
     private final MoistureReadingService moistureReadingService;
     private final BidService bidService;
+        private final DealService dealService;
 
     public FarmerController(
-            FarmService farmService,
             PaddyLotService paddyLotService,
             MoistureReadingService moistureReadingService,
-            BidService bidService
+            BidService bidService,
+            DealService dealService
     ) {
-        this.farmService = farmService;
         this.paddyLotService = paddyLotService;
         this.moistureReadingService = moistureReadingService;
         this.bidService = bidService;
+        this.dealService = dealService;
     }
 
     @GetMapping("/me")
@@ -61,27 +61,6 @@ public class FarmerController {
         );
     }
 
-    @PostMapping("/farms")
-    public Farm createFarm(
-            Authentication authentication,
-            @Valid @RequestBody FarmRequest request
-    ) {
-
-        User user = (User) authentication.getPrincipal();
-
-        return farmService.createFarm(user, request);
-    }
-
-    @GetMapping("/farms")
-    public List<Farm> getMyFarms(
-            Authentication authentication
-    ) {
-
-        User user = (User) authentication.getPrincipal();
-
-        return farmService.getMyFarms(user);
-    }
-
     @PostMapping("/lots")
     public PaddyLotResponse createLot(
             Authentication authentication,
@@ -101,6 +80,15 @@ public class FarmerController {
         User user = (User) authentication.getPrincipal();
 
         return paddyLotService.getMyLots(user);
+    }
+
+    @GetMapping("/lots/{lotId}")
+    public PaddyLotResponse getLot(
+            Authentication authentication,
+            @PathVariable Long lotId
+    ) {
+        User user = (User) authentication.getPrincipal();
+        return paddyLotService.getLot(user, lotId);
     }
 
     @PostMapping("/lots/{lotId}/moisture")
@@ -149,6 +137,14 @@ public class FarmerController {
         return bidService.getLotBids(user, lotId);
     }
 
+        @GetMapping("/bids")
+        public List<BidResponse> getFarmerBids(
+                        Authentication authentication
+        ) {
+                User user = (User) authentication.getPrincipal();
+                return bidService.getFarmerBids(user);
+        }
+
     @PostMapping("/bids/{bidId}/accept")
     public BidResponse acceptBid(
             Authentication authentication,
@@ -166,4 +162,49 @@ public class FarmerController {
         User user = (User) authentication.getPrincipal();
         return bidService.rejectBid(user, bidId);
     }
+
+        @PostMapping("/bids/{bidId}/deal")
+        public ResponseEntity<DealResponse> createDeal(
+                        Authentication authentication,
+                        @PathVariable Long bidId
+        ) {
+                User user = (User) authentication.getPrincipal();
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(dealService.createFromAcceptedBid(user, bidId));
+        }
+
+        @GetMapping("/deals")
+        public List<DealResponse> getDeals(Authentication authentication) {
+                User user = (User) authentication.getPrincipal();
+                return dealService.getDeals(user);
+        }
+
+        @PostMapping("/deals/{dealId}/confirm")
+        public DealResponse confirmDeal(
+                        Authentication authentication,
+                        @PathVariable Long dealId
+        ) {
+                User user = (User) authentication.getPrincipal();
+                return dealService.confirm(user, dealId);
+        }
+
+        @PostMapping("/deals/{dealId}/payment")
+        public DealResponse updatePayment(
+                        Authentication authentication,
+                        @PathVariable Long dealId,
+                        @Valid @RequestBody DealStatusUpdateRequest request
+        ) {
+                User user = (User) authentication.getPrincipal();
+                return dealService.updatePayment(user, dealId, request.getStatus());
+        }
+
+        @PostMapping("/deals/{dealId}/delivery")
+        public DealResponse updateDelivery(
+                        Authentication authentication,
+                        @PathVariable Long dealId,
+                        @Valid @RequestBody DealStatusUpdateRequest request
+        ) {
+                User user = (User) authentication.getPrincipal();
+                return dealService.updateDelivery(user, dealId, request.getStatus());
+        }
 }

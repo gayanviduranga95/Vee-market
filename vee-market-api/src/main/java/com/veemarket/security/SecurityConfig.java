@@ -61,9 +61,9 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Next.js frontend
-        configuration.setAllowedOrigins(
-            List.of("http://localhost:3000")
+        // Next.js frontend - allow localhost and LAN origins
+        configuration.setAllowedOriginPatterns(
+            List.of("*")
         );
 
         // HTTP methods

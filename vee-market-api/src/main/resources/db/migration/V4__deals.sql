@@ -1,0 +1,13 @@
+CREATE TABLE deals (
+    id BIGSERIAL PRIMARY KEY,
+    bid_id BIGINT NOT NULL UNIQUE,
+    status VARCHAR(30) NOT NULL DEFAULT 'CREATED',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_deal_bid
+        FOREIGN KEY (bid_id)
+        REFERENCES bids(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_deals_status ON deals(status);

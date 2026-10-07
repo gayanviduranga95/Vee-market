@@ -22,16 +22,17 @@ public class FarmService {
         this.farmerProfileRepository = farmerProfileRepository;
     }
 
-    @Transactional
-    public Farm createFarm(User user, FarmRequest request) {
+    // =========================================================
+    // CREATE FARM
+    // =========================================================
 
-        FarmerProfile farmer = farmerProfileRepository
-                .findByUserId(user.getId())
-                .orElseGet(() -> {
-                    FarmerProfile profile = new FarmerProfile();
-                    profile.setUser(user);
-                    return farmerProfileRepository.save(profile);
-                });
+    @Transactional
+    public FarmResponse createFarm(
+            User user,
+            FarmRequest request
+    ) {
+
+        FarmerProfile farmer = getOrCreateFarmerProfile(user);
 
         Farm farm = new Farm();
 
@@ -41,20 +42,51 @@ public class FarmService {
         farm.setLandSize(request.getLandSize());
         farm.setMainCrop(request.getMainCrop());
 
-        return farmRepository.save(farm);
+        Farm savedFarm = farmRepository.save(farm);
+
+        return toResponse(savedFarm);
     }
 
+    // =========================================================
+    // GET MY FARMS
+    // =========================================================
+
     @Transactional(readOnly = true)
-    public List<Farm> getMyFarms(User user) {
+    public List<FarmResponse> getMyFarms(User user) {
 
-        FarmerProfile farmer = farmerProfileRepository
-                .findByUserId(user.getId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Farmer profile not found"
-                        )
-                );
+        FarmerProfile farmer = getOrCreateFarmerProfile(user);
 
-        return farmRepository.findByFarmerId(farmer.getId());
+        return farmRepository
+                .findByFarmerId(farmer.getId())
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    // =========================================================
+    // ENTITY → RESPONSE
+    // =========================================================
+
+        private FarmerProfile getOrCreateFarmerProfile(User user) {
+                return farmerProfileRepository
+                                .findByUserId(user.getId())
+                                .orElseGet(() -> {
+                                        FarmerProfile farmer = new FarmerProfile();
+                                        farmer.setUser(user);
+                                        return farmerProfileRepository.save(farmer);
+                                });
+        }
+
+    private FarmResponse toResponse(Farm farm) {
+
+        return new FarmResponse(
+                farm.getId(),
+                farm.getFarmer().getId(),
+                farm.getFarmName(),
+                farm.getLocation(),
+                farm.getLandSize(),
+                farm.getMainCrop(),
+                farm.getCreatedAt()
+        );
     }
 }

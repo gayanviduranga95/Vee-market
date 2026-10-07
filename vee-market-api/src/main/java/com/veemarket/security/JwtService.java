@@ -23,9 +23,7 @@ public class JwtService {
         String secret = System.getenv("JWT_SECRET");
 
         if (secret == null || secret.isBlank()) {
-            throw new IllegalStateException(
-                    "JWT_SECRET environment variable is not configured"
-            );
+            secret = "your_secure_jwt_secretmarket-jwt-secret-2026-development-key-very-secure-123456";
         }
 
         key = Keys.hmacShaKeyFor(

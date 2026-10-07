@@ -53,12 +53,15 @@ public class AuthController {
     ) {
 
         try {
-            String token = authService.login(request);
+                        AuthService.LoginResult result = authService.login(request);
 
             return ResponseEntity.ok(
                     Map.of(
                             "message", "Login successful",
-                            "token", token
+                                                "token", result.token(),
+                                                "userId", result.user().getId(),
+                                                "email", result.user().getEmail(),
+                                                "role", result.user().getRole().name()
                     )
             );
 
