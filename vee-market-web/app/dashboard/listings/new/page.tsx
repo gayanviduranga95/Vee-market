@@ -4,8 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "../../../components/LanguageProvider";
-import LanguageSwitcher from "../../../components/LanguageSwitcher";
-import ThemeSwitcher from "../../../components/ThemeSwitcher";
+import VeeHeader from "../../../components/VeeHeader";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://172.18.228.12:8080";
@@ -368,25 +367,8 @@ export default function NewPaddyLotPage() {
 
   if (error && !farms.length) {
     return (
-      <main className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
-        <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-          <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-            <Link href="/dashboard/listings" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-xl text-white">
-                🌿
-              </div>
-              <div>
-                <p className="font-bold text-slate-900 dark:text-white">Vee Market</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Farmer Marketplace</p>
-              </div>
-            </Link>
-
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher />
-              <ThemeSwitcher />
-            </div>
-          </div>
-        </header>
+      <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+        <VeeHeader roleBadge={language === "si" ? "නව තොගය" : "New Lot"} roleType="FARMER" />
 
         <div className="mx-auto flex min-h-[calc(100vh-80px)] max-w-3xl items-start justify-center px-6 py-12">
           <div className="w-full rounded-3xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/60 dark:bg-red-950/30">
@@ -415,33 +397,8 @@ export default function NewPaddyLotPage() {
   // ---------------------------------------------------------
   if (!farms.length) {
     return (
-      <main className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
-        <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-          <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-            <Link
-              href="/dashboard/listings"
-              className="flex items-center gap-3"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-xl text-white">
-                🌿
-              </div>
-
-              <div>
-                <p className="font-bold text-slate-900 dark:text-white">
-                  Vee Market
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Farmer Marketplace
-                </p>
-              </div>
-            </Link>
-
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher />
-              <ThemeSwitcher />
-            </div>
-          </div>
-        </header>
+      <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+        <VeeHeader roleBadge={language === "si" ? "නව තොගය" : "New Lot"} roleType="FARMER" />
 
         <div className="mx-auto flex min-h-[calc(100vh-80px)] max-w-3xl items-center justify-center px-6 py-12">
           <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -482,35 +439,8 @@ export default function NewPaddyLotPage() {
   // Main form
   // ---------------------------------------------------------
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link
-            href="/dashboard/listings"
-            className="flex items-center gap-3"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-xl text-white shadow-sm">
-              🌿
-            </div>
-
-            <div>
-              <p className="font-bold text-slate-900 dark:text-white">
-                Vee Market
-              </p>
-
-              <p className="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">
-                Farmer Marketplace
-              </p>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+      <VeeHeader roleBadge={language === "si" ? "නව තොගය" : "New Lot"} roleType="FARMER" />
 
       {/* Content */}
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:py-12">

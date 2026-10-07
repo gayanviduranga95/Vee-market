@@ -656,64 +656,6 @@ export default function LoginPage() {
 
               </div>
 
-              {/* QUICK DEMO CREDENTIALS SHORTCUTS */}
-              <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 dark:border-slate-800 dark:bg-slate-900/60">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between">
-                  <span>⚡ Quick Demo / Test Accounts</span>
-                  <span className="text-[10px] font-normal text-emerald-600 dark:text-emerald-400">1-click fill</span>
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail("admin@veemarket.com");
-                      setPassword("password123");
-                      setError("");
-                    }}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50/80 px-2 py-2 text-xs font-bold text-purple-800 transition hover:bg-purple-100 hover:border-purple-300 dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-300"
-                  >
-                    <span>👑</span>
-                    <span>Admin</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail("gayanviduranga95@gmail.com");
-                      setPassword("password123");
-                      setError("");
-                    }}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 px-2 py-2 text-xs font-bold text-emerald-800 transition hover:bg-emerald-100 hover:border-emerald-300 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
-                  >
-                    <span>🌾</span>
-                    <span>Farmer</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail("brmnfmrfkoxzqkduit@xfavaj.com");
-                      setPassword("password123");
-                      setError("");
-                    }}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/80 px-2 py-2 text-xs font-bold text-amber-800 transition hover:bg-amber-100 hover:border-amber-300 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300"
-                  >
-                    <span>🏭</span>
-                    <span>Mill</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail("brmnfmrfkoxzqkduiv@xfavaj.com");
-                      setPassword("password123");
-                      setError("");
-                    }}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/80 px-2 py-2 text-xs font-bold text-blue-800 transition hover:bg-blue-100 hover:border-blue-300 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
-                  >
-                    <span>🏪</span>
-                    <span>Shop/Hotel</span>
-                  </button>
-                </div>
-              </div>
-
               {/* ==================================================
                   FORM
               ================================================== */}
@@ -723,7 +665,7 @@ export default function LoginPage() {
                   handleLogin
                 }
                 className="
-                  mt-6
+                  mt-8
                   space-y-5
                 "
               >

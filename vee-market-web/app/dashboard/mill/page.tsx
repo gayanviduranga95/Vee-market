@@ -3,9 +3,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { useLanguage } from "../../components/LanguageProvider";
+import VeeHeader from "../../components/VeeHeader";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -459,32 +458,15 @@ export default function MillDashboardPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-700 dark:bg-slate-950 dark:text-slate-200">
+      <main className="flex min-h-screen items-center justify-center bg-[#f4f7f3] text-slate-700 dark:bg-slate-950 dark:text-slate-200">
         <p>{text.loading}</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/dashboard/mill" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-xl text-white">🌾</span>
-            <span>
-              <strong className="block">Vee Market</strong>
-              <small className="text-slate-500 dark:text-slate-400">{text.title}</small>
-            </span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-            <button onClick={logout} className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 sm:block">
-              {text.logout}
-            </button>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+      <VeeHeader roleBadge={isSinhala ? "මෝල් පුවරුව" : "Rice Mill"} roleType="MILL" />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
         <div className="mb-8">

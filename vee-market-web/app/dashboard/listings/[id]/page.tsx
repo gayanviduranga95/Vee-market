@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
-import LanguageSwitcher from "../../../components/LanguageSwitcher";
-import ThemeSwitcher from "../../../components/ThemeSwitcher";
 import { useLanguage } from "../../../components/LanguageProvider";
+import VeeHeader from "../../../components/VeeHeader";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -785,7 +784,7 @@ export default function PaddyLotDetailsPage() {
   // ==========================================================
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+      <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
         <Header />
         <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-4">
           <div className="text-center">
@@ -804,7 +803,7 @@ export default function PaddyLotDetailsPage() {
   // ==========================================================
   if (error && !lot) {
     return (
-      <main className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+      <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
         <Header />
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
           <Link
@@ -868,7 +867,7 @@ export default function PaddyLotDetailsPage() {
   const hasMoisture = moisture.length > 0;
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+    <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
       <Header />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
@@ -1606,30 +1605,7 @@ export default function PaddyLotDetailsPage() {
 
   // Header Subcomponent
   function Header() {
-    return (
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-xl text-white shadow-sm">
-              🌿
-            </div>
-            <div>
-              <p className="font-bold text-slate-900 dark:text-white">
-                Vee Market
-              </p>
-              <p className="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">
-                Farmer Marketplace
-              </p>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-          </div>
-        </div>
-      </header>
-    );
+    return <VeeHeader roleBadge={isSinhala ? "වී තොගය" : "Lot Details"} roleType="FARMER" />;
   }
 }
 

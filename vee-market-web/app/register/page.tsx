@@ -52,92 +52,105 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("");
 
   const t = {
-    title: isSinhala ? "ගිණුමක් සාදන්න" : "Create an Account",
+    brand: {
+      name: isSinhala ? "වී මාර්කට්" : "Vee Market",
+      tagline: isSinhala ? "ගොවිපළේ සිට අනාගතයට" : "From Farm to Future",
+    },
+    heroTitle: isSinhala
+      ? "ශ්‍රී ලංකාවේ කෘෂිකාර්මික වෙළඳ ජාලයට එක්වන්න"
+      : "Join Sri Lanka's Modern Agricultural Network",
+    heroDescription: isSinhala
+      ? "ගොවීන්, සහල් මෝල් සහ ව්‍යාපාර සෘජුව සම්බන්ධ කරන ජාතික වෙළඳපොළ."
+      : "A unified platform connecting farmers, rice mills, and wholesale businesses across the island.",
+    fairMarket: isSinhala ? "සාධාරණ වෙළඳපොළ" : "Fair Market",
+    trustedNetwork: isSinhala ? "විශ්වාසදායක ජාලය" : "Trusted Network",
+    reliableSupply: isSinhala ? "විශ්වාසදායක සැපයුම" : "Reliable Supply",
+
+    title: isSinhala ? "ගිණුම සාදන්න" : "Create Account",
     subtitle: isSinhala
-      ? "ඔබගේ භූමිකාව තෝරා වී මාර්කට් ජාලයට එක්වන්න."
-      : "Select your role and join the Vee Market national network.",
-    selectRole: isSinhala ? "ඔබ කවුද? (භූමිකාව තෝරන්න)" : "Who are you? (Select Role)",
+      ? "ඔබගේ භූමිකාව තෝරා ලියාපදිංචි වන්න"
+      : "Select your role to start using Vee Market",
+
     roles: {
       FARMER: {
         title: isSinhala ? "ගොවියා" : "Farmer",
-        desc: isSinhala
-          ? "වී අස්වැන්න සාධාරණ මිලකට මෝල් වෙත සෘජුව විකුණන්න."
-          : "Sell raw paddy directly to mills with IoT moisture verification.",
+        desc: isSinhala ? "වී අස්වැන්න විකුණන්න" : "Sell paddy directly",
         badge: "🌾",
       },
       MILL: {
         title: isSinhala ? "සහල් මෝල" : "Rice Mill",
-        desc: isSinhala
-          ? "ගොවීන්ගෙන් වී මිලදී ගෙන හෝටල් සහ සාප්පු වෙත සහල් සපයන්න."
-          : "Procure paddy lots from farmers & supply bulk rice to shops/hotels.",
+        desc: isSinhala ? "වී මිලදී ගෙන සහල් සපයන්න" : "Procure & mill rice",
         badge: "🏭",
       },
       SHOP: {
         title: isSinhala ? "වෙළඳසැල" : "Shop / Retail",
-        desc: isSinhala
-          ? "මෝල් වෙතින් තොග සහල් සෘජුව ඇණවුම් කරන්න."
-          : "Procure wholesale rice directly from certified mills with best rates.",
+        desc: isSinhala ? "තොග සහල් ඇණවුම් කරන්න" : "Wholesale rice buyer",
         badge: "🏪",
       },
       HOTEL: {
-        title: isSinhala ? "හෝටලය / අවන්හල" : "Hotel / Restaurant",
-        desc: isSinhala
-          ? "ප්‍රමිතියෙන් උසස් සහල් සතිපතා හෝ තොග වශයෙන් ලබාගන්න."
-          : "Source high-quality rice batches on weekly or bulk schedules.",
+        title: isSinhala ? "හෝටලය" : "Hotel / Dining",
+        desc: isSinhala ? "තොග සහල් සපයා ගන්න" : "Commercial dining buyer",
         badge: "🏨",
       },
     },
+
     common: {
-      fullName: isSinhala ? "සම්පූර්ණ නම" : "Full Name",
-      fullNamePlaceholder: isSinhala ? "උදා: කේ.ඒ. සුනිල් ශාන්ත" : "e.g. Sunil Perera",
-      phone: isSinhala ? "දුරකථන අංකය" : "Mobile Phone Number",
-      phonePlaceholder: isSinhala ? "0771234567" : "0771234567",
-      email: isSinhala ? "විද්‍යුත් තැපෑල (Email)" : "Email Address",
-      emailPlaceholder: isSinhala ? "yourname@example.com" : "yourname@example.com",
+      name: isSinhala ? "සම්පූර්ණ නම" : "Full Name",
+      namePlaceholder: isSinhala ? "ඔබගේ සම්පූර්ණ නම" : "Enter your full name",
+      phone: isSinhala ? "දුරකථන අංකය" : "Phone Number",
+      phonePlaceholder: "07XXXXXXXX",
+      email: isSinhala ? "විද්‍යුත් තැපැල් ලිපිනය" : "Email Address",
+      emailPlaceholder: "example@gmail.com",
       password: isSinhala ? "මුරපදය" : "Password",
-      passwordPlaceholder: isSinhala ? "අවම අක්ෂර 6ක්" : "Minimum 6 characters",
+      passwordPlaceholder: isSinhala ? "මුරපදයක් ඇතුළත් කරන්න" : "Create a password",
       confirmPassword: isSinhala ? "මුරපදය තහවුරු කරන්න" : "Confirm Password",
-      confirmPasswordPlaceholder: isSinhala ? "මුරපදය නැවත ඇතුළත් කරන්න" : "Re-enter password",
+      confirmPasswordPlaceholder: isSinhala ? "මුරපදය නැවත ඇතුළත් කරන්න" : "Re-enter your password",
     },
+
     farmerFields: {
-      location: isSinhala ? "ගොවිපළ පිහිටි දිස්ත්‍රික්කය / ප්‍රදේශය" : "Farm District / Region",
-      locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව / අම්පාර" : "e.g. Polonnaruwa, Ampara, Galle",
-      deviceNumber: isSinhala ? "ස්මාර්ට් තෙතමන මීටර අංකය (විකල්ප)" : "Smart Moisture Meter ID (Optional)",
-      deviceHelper: isSinhala
-        ? "ඔබ සතුව ඩිජිටල් තෙතමන මාපකයක් ඇත්නම් (උදා: DEVICE-001) ඇතුළත් කරන්න. නැතහොත් පසුව එක් කළ හැක."
-        : "Connect your digital IoT meter (e.g. DEVICE-001) for verified readings. Leave blank if not yet assigned.",
+      location: isSinhala ? "ගොවිපළ දිස්ත්‍රික්කය" : "Farm District / Region",
+      locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව / අම්පාර" : "e.g. Polonnaruwa, Ampara",
+      deviceNumber: isSinhala ? "තෙතමන මාපක අංකය (විකල්ප)" : "Moisture Meter ID (Optional)",
+      devicePlaceholder: "e.g. DEVICE-001",
+      deviceHelp: isSinhala
+        ? "ස්මාර්ට් තෙතමන මාපකයක් ඇත්නම් ඇතුළත් කරන්න."
+        : "Connect your digital IoT meter for verified readings.",
     },
+
     millFields: {
       name: isSinhala ? "සහල් මෝලේ නම" : "Rice Mill Name",
-      namePlaceholder: isSinhala ? "උදා: රජරට නවීන සහල් මෝල" : "e.g. Rajarata Modern Rice Mill",
-      location: isSinhala ? "මෝල පිහිටි ස්ථානය / දිස්ත්‍රික්කය" : "Mill Location / District",
-      locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව කාර්මික කලාපය" : "e.g. Polonnaruwa Industrial Zone",
-      regNo: isSinhala ? "ව්‍යාපාර / මෝල් ලියාපදිංචි අංකය" : "Business / Mill Reg Number",
-      regNoPlaceholder: isSinhala ? "උදා: ML-2024-984" : "e.g. ML-2024-984 (Optional)",
-      capacity: isSinhala ? "දිනකට ඇඹරුම් ධාරිතාව (kg)" : "Daily Milling Capacity (kg/day)",
+      namePlaceholder: isSinhala ? "උදා: රජරට සහල් මෝල" : "e.g. Rajarata Rice Mill",
+      location: isSinhala ? "මෝල පිහිටි ස්ථානය" : "Mill Location / District",
+      locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව" : "e.g. Polonnaruwa Industrial Zone",
+      regNo: isSinhala ? "මෝල් ලියාපදිංචි අංකය" : "Mill Registration No",
+      regNoPlaceholder: "e.g. ML-2024-001 (Optional)",
+      capacity: isSinhala ? "දිනක ඇඹරුම් ධාරිතාව (kg)" : "Daily Milling Capacity (kg)",
     },
+
     shopFields: {
       name: isSinhala ? "වෙළඳසැලේ නම" : "Shop / Store Name",
-      namePlaceholder: isSinhala ? "උදා: ලංකා තොග සහල් වෙළෙන්දෝ" : "e.g. Lanka Wholesale Rice Traders",
-      location: isSinhala ? "නගරය / ලිපිනය" : "Shop City / Address",
-      locationPlaceholder: isSinhala ? "උදා: පිටකොටුව තොග වෙළඳපොළ" : "e.g. Pettah Wholesale Market, Colombo",
-      regNo: isSinhala ? "ව්‍යාපාර ලියාපදිංචි අංකය (විකල්ප)" : "Business Reg No (Optional)",
-      regNoPlaceholder: isSinhala ? "උදා: PV-84930" : "e.g. PV-84930",
+      namePlaceholder: isSinhala ? "උදා: ලංකා තොග සහල්" : "e.g. Lanka Wholesale Traders",
+      location: isSinhala ? "නගරය / ස්ථානය" : "Shop City / Address",
+      locationPlaceholder: isSinhala ? "උදා: පිටකොටුව, කොළඹ" : "e.g. Pettah, Colombo",
+      regNo: isSinhala ? "ව්‍යාපාර ලියාපදිංචි අංකය" : "Business Reg No (Optional)",
+      regNoPlaceholder: "e.g. PV-12345",
     },
+
     hotelFields: {
       name: isSinhala ? "හෝටලයේ / අවන්හලේ නම" : "Hotel / Restaurant Name",
-      namePlaceholder: isSinhala ? "උදා: ග්‍රෑන්ඩ් හොටෙල් හෝ කැටරින්ග්" : "e.g. Grand Resort & Dining",
-      location: isSinhala ? "නගරය / ලිපිනය" : "City / Address",
-      locationPlaceholder: isSinhala ? "උදා: කොළඹ 03 / නුවරඑළිය" : "e.g. Colombo 03 / Kandy",
+      namePlaceholder: isSinhala ? "උදා: ග්‍රෑන්ඩ් හොටෙල්" : "e.g. Grand Cinnamon Resort",
+      location: isSinhala ? "නගරය / ලිපිනය" : "City / Location",
+      locationPlaceholder: isSinhala ? "උදා: කොළඹ 03" : "e.g. Colombo 03",
       category: isSinhala ? "ආයතන වර්ගය" : "Establishment Type",
     },
-    submit: isSinhala ? "ලියාපදිංචි වන්න" : "Create Account",
-    submitting: isSinhala ? "ලියාපදිංචි වෙමින්..." : "Creating Account...",
-    alreadyHaveAccount: isSinhala ? "දැනටමත් ගිණුමක් තිබේද?" : "Already have an account?",
-    loginLink: isSinhala ? "ඇතුළු වන්න (Login)" : "Sign In",
+
+    submit: isSinhala ? "ගිණුම සාදන්න" : "Create Account",
+    submitting: isSinhala ? "ගිණුම සාදමින්..." : "Creating Account...",
+    alreadyAccount: isSinhala ? "දැනටමත් ගිණුමක් තිබේද?" : "Already have an account?",
+    loginLink: isSinhala ? "ඇතුළු වන්න" : "Login",
     successMsg: isSinhala
-      ? "ගිණුම සාර්ථකව සාදන ලදී! ඇතුළු වීම වෙත යොමු කෙරේ..."
-      : "Account created successfully! Redirecting to login...",
+      ? "ගිණුම සාර්ථකව සාදන ලදී. Login වෙත යොමු කරමින්..."
+      : "Account created successfully. Redirecting to login...",
   };
 
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
@@ -146,15 +159,15 @@ export default function RegisterPage() {
     setSuccess("");
 
     if (!name.trim()) {
-      setError(isSinhala ? "කරුණාකර සම්පූර්ණ නම ඇතුළත් කරන්න." : "Please enter your full name.");
+      setError(isSinhala ? "සම්පූර්ණ නම ඇතුළත් කරන්න." : "Please enter your full name.");
       return;
     }
     if (!phone.trim()) {
-      setError(isSinhala ? "කරුණාකර දුරකථන අංකය ඇතුළත් කරන්න." : "Please enter your mobile phone number.");
+      setError(isSinhala ? "දුරකථන අංකය ඇතුළත් කරන්න." : "Please enter your phone number.");
       return;
     }
     if (!email.trim()) {
-      setError(isSinhala ? "කරුණාකර විද්‍යුත් තැපෑල ඇතුළත් කරන්න." : "Please enter your email address.");
+      setError(isSinhala ? "විද්‍යුත් තැපෑල ඇතුළත් කරන්න." : "Please enter your email.");
       return;
     }
     if (password.length < 6) {
@@ -162,21 +175,21 @@ export default function RegisterPage() {
       return;
     }
     if (password !== confirmPassword) {
-      setError(isSinhala ? "මුරපද දෙක නොගැලපේ. නැවත පරීක්ෂා කරන්න." : "Passwords do not match.");
+      setError(isSinhala ? "මුරපද දෙක නොගැලපේ." : "Passwords do not match.");
       return;
     }
 
-    // Role-specific validation
+    // Role-specific validations
     if (role === "MILL" && !millName.trim()) {
-      setError(isSinhala ? "කරුණාකර සහල් මෝලේ නම ඇතුළත් කරන්න." : "Please enter your rice mill name.");
+      setError(isSinhala ? "සහල් මෝලේ නම ඇතුළත් කරන්න." : "Please enter rice mill name.");
       return;
     }
     if (role === "SHOP" && !shopName.trim()) {
-      setError(isSinhala ? "කරුණාකර වෙළඳසැලේ නම ඇතුළත් කරන්න." : "Please enter your shop or business name.");
+      setError(isSinhala ? "වෙළඳසැලේ නම ඇතුළත් කරන්න." : "Please enter shop name.");
       return;
     }
     if (role === "HOTEL" && !hotelName.trim()) {
-      setError(isSinhala ? "කරුණාකර හෝටලයේ හෝ අවන්හලේ නම ඇතුළත් කරන්න." : "Please enter your hotel or restaurant name.");
+      setError(isSinhala ? "හෝටලයේ නම ඇතුළත් කරන්න." : "Please enter hotel name.");
       return;
     }
 
@@ -250,15 +263,15 @@ export default function RegisterPage() {
           data?.message ||
             data?.error ||
             (isSinhala
-              ? "ලියාපදිංචි වීම අසාර්ථක විය. නැවත උත්සාහ කරන්න."
-              : "Registration failed. Please check details and try again.")
+              ? "ලියාපදිංචි වීම අසාර්ථක විය."
+              : "Registration failed. Please check details.")
         );
       }
 
       setSuccess(t.successMsg);
       setTimeout(() => {
         router.push("/login");
-      }, 1500);
+      }, 1200);
     } catch (err) {
       console.error("Registration error:", err);
       setError(
@@ -274,427 +287,429 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#edf5ef] dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        {/* TOP BAR */}
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            href="/"
-            className="flex items-center gap-3 text-emerald-800 dark:text-emerald-400 font-extrabold text-2xl tracking-tight"
-          >
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md text-xl">
-              🌾
-            </span>
-            <span>Vee Market</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <ThemeSwitcher />
-            <LanguageSwitcher />
-          </div>
-        </div>
+    <main className="min-h-screen bg-[#edf5ef] dark:bg-background">
+      <div className="mx-auto min-h-screen w-full max-w-[1700px] xl:p-6">
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-white dark:bg-surface xl:flex-row xl:min-h-[calc(100vh-48px)] xl:rounded-[30px] xl:shadow-[0_20px_70px_rgba(0,0,0,0.12)]">
+          {/* ==================================================
+              LEFT HERO (SAME AS LOGIN PAGE)
+          ================================================== */}
+          <section className="relative flex min-h-[430px] w-full flex-col justify-end overflow-hidden sm:min-h-[500px] xl:min-h-0 xl:w-[50%]">
+            {/* HERO IMAGE */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: "url('/vee-market-hero.png')" }}
+            />
 
-        {/* MAIN CARD */}
-        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
-          {/* HEADER BANNER */}
-          <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 px-6 py-8 text-white sm:px-10">
-            <h1 className="text-2xl sm:text-3xl font-extrabold">{t.title}</h1>
-            <p className="mt-2 text-emerald-100 text-sm sm:text-base max-w-2xl">
-              {t.subtitle}
-            </p>
-          </div>
+            {/* DARK GRADIENT */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#04351f]/95 via-[#04351f]/45 to-transparent" />
 
-          <form onSubmit={handleRegister} className="p-6 sm:p-10 space-y-8">
-            {/* STEP 1: ROLE SELECTOR CARDS */}
-            <div>
-              <label className="block text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3">
-                {t.selectRole}
-              </label>
+            {/* BRAND */}
+            <div className="absolute left-5 top-5 z-10 flex items-center gap-3 sm:left-8 sm:top-8">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 shadow-lg">
+                <LeafLogo />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">{t.brand.name}</h1>
+                <p className="text-xs text-white/80">{t.brand.tagline}</p>
+              </div>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {(["FARMER", "MILL", "SHOP", "HOTEL"] as RoleType[]).map((r) => {
-                  const roleMeta = t.roles[r];
-                  const isSelected = role === r;
+            {/* HERO CONTENT */}
+            <div className="relative z-10 p-5 sm:p-8 md:p-10 xl:p-14">
+              <div className="max-w-[650px]">
+                <h2 className="text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl xl:text-[52px]">
+                  {t.heroTitle}
+                </h2>
+                <p className="mt-4 max-w-[560px] text-sm leading-6 text-white/90 sm:text-base md:text-lg">
+                  {t.heroDescription}
+                </p>
 
-                  return (
-                    <button
-                      type="button"
-                      key={r}
-                      onClick={() => setRole(r)}
-                      className={`relative flex flex-col p-4 text-left rounded-2xl border-2 transition duration-200 ${
-                        isSelected
-                          ? "border-emerald-600 bg-emerald-50/70 shadow-md dark:border-emerald-500 dark:bg-emerald-950/40"
-                          : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/60 dark:hover:border-slate-700"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-3xl">{roleMeta.badge}</span>
-                        {isSelected && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white text-xs font-bold">
-                            ✓
-                          </span>
-                        )}
-                      </div>
-                      <span className="font-bold text-slate-900 dark:text-white text-base">
-                        {roleMeta.title}
-                      </span>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                        {roleMeta.desc}
+                <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                  <Feature icon="🌱" title={t.fairMarket} />
+                  <Feature icon="🤝" title={t.trustedNetwork} />
+                  <Feature icon="🚚" title={t.reliableSupply} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ==================================================
+              RIGHT REGISTRATION PANEL (SAME THEME AS LOGIN)
+          ================================================== */}
+          <section className="relative flex w-full flex-1 items-center justify-center bg-white dark:bg-surface px-5 py-10 sm:px-8 md:px-12 xl:w-[50%] xl:px-14 xl:py-10">
+            {/* TOP CONTROLS */}
+            <div className="absolute right-4 top-4 sm:right-7 sm:top-7 flex items-center gap-2">
+              <ThemeSwitcher />
+              <LanguageSwitcher />
+            </div>
+
+            <div className="w-full max-w-[500px] pt-10 sm:pt-14 xl:pt-4">
+              {/* LOGO */}
+              <div className="mb-6 text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 dark:bg-emerald-950/40">
+                  <LeafLogo />
+                </div>
+                <h2 className="mt-3 text-xl font-bold text-[#063b25] dark:text-emerald-400 sm:text-2xl">
+                  {t.brand.name}
+                </h2>
+              </div>
+
+              {/* TITLE */}
+              <div className="text-center mb-6">
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+                  {t.title}
+                </h3>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 sm:text-base">
+                  {t.subtitle}
+                </p>
+              </div>
+
+              {/* STEP 1: ROLE SELECTOR CARDS */}
+              <div className="mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(["FARMER", "MILL", "SHOP", "HOTEL"] as RoleType[]).map((r) => {
+                    const roleMeta = t.roles[r];
+                    const isSelected = role === r;
+
+                    return (
+                      <button
+                        type="button"
+                        key={r}
+                        onClick={() => setRole(r)}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition ${
+                          isSelected
+                            ? "border-[#087f3f] bg-[#edf5ef] text-[#087f3f] font-bold shadow-sm dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300"
+                            : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400"
+                        }`}
+                      >
+                        <span className="text-2xl">{roleMeta.badge}</span>
+                        <span className="mt-1 text-xs font-semibold leading-tight">
+                          {roleMeta.title}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ERROR / SUCCESS NOTICES */}
+              {error && (
+                <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="mb-4 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-300">
+                  {success}
+                </div>
+              )}
+
+              {/* FORM */}
+              <form onSubmit={handleRegister} className="space-y-4">
+                {/* ROLE-SPECIFIC SPECIALIZED FIELDS */}
+                {role === "FARMER" && (
+                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {t.farmerFields.location}
+                      </label>
+                      <input
+                        type="text"
+                        value={farmLocation}
+                        onChange={(e) => setFarmLocation(e.target.value)}
+                        placeholder={t.farmerFields.locationPlaceholder}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {t.farmerFields.deviceNumber}
+                      </label>
+                      <input
+                        type="text"
+                        value={deviceNumber}
+                        onChange={(e) => setDeviceNumber(e.target.value)}
+                        placeholder={t.farmerFields.devicePlaceholder}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                        {t.farmerFields.deviceHelp}
                       </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ERROR / SUCCESS NOTICES */}
-            {error && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 flex items-center gap-3">
-                <span>⚠️</span>
-                <span>{error}</span>
-              </div>
-            )}
-            {success && (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300 flex items-center gap-3">
-                <span>🎉</span>
-                <span>{success}</span>
-              </div>
-            )}
-
-            {/* STEP 2: ROLE-SPECIFIC SPECIALIZED FIELDS */}
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 p-5 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-4">
-              <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400 font-bold text-sm uppercase tracking-wide">
-                <span>{t.roles[role].badge}</span>
-                <span>
-                  {isSinhala
-                    ? `${t.roles[role].title} සඳහා විශේෂිත තොරතුරු`
-                    : `Specialized Information for ${t.roles[role].title}`}
-                </span>
-              </div>
-
-              {/* FARMER FIELDS */}
-              {role === "FARMER" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.farmerFields.location}
-                    </label>
-                    <input
-                      type="text"
-                      value={farmLocation}
-                      onChange={(e) => setFarmLocation(e.target.value)}
-                      placeholder={t.farmerFields.locationPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
+                    </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.farmerFields.deviceNumber}
-                    </label>
-                    <input
-                      type="text"
-                      value={deviceNumber}
-                      onChange={(e) => setDeviceNumber(e.target.value)}
-                      placeholder="e.g. DEVICE-001"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                      {t.farmerFields.deviceHelper}
-                    </p>
+                {role === "MILL" && (
+                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {t.millFields.name} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={millName}
+                        onChange={(e) => setMillName(e.target.value)}
+                        placeholder={t.millFields.namePlaceholder}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                          {t.millFields.location} *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={millLocation}
+                          onChange={(e) => setMillLocation(e.target.value)}
+                          placeholder={t.millFields.locationPlaceholder}
+                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                          {t.millFields.regNo}
+                        </label>
+                        <input
+                          type="text"
+                          value={millRegNo}
+                          onChange={(e) => setMillRegNo(e.target.value)}
+                          placeholder={t.millFields.regNoPlaceholder}
+                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* MILL FIELDS */}
-              {role === "MILL" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.millFields.name} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={millName}
-                      onChange={(e) => setMillName(e.target.value)}
-                      placeholder={t.millFields.namePlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
+                {role === "SHOP" && (
+                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {t.shopFields.name} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={shopName}
+                        onChange={(e) => setShopName(e.target.value)}
+                        placeholder={t.shopFields.namePlaceholder}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {t.shopFields.location} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={shopLocation}
+                        onChange={(e) => setShopLocation(e.target.value)}
+                        placeholder={t.shopFields.locationPlaceholder}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.millFields.location} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={millLocation}
-                      onChange={(e) => setMillLocation(e.target.value)}
-                      placeholder={t.millFields.locationPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
+                {role === "HOTEL" && (
+                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {t.hotelFields.name} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={hotelName}
+                        onChange={(e) => setHotelName(e.target.value)}
+                        placeholder={t.hotelFields.namePlaceholder}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {t.hotelFields.location} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={hotelLocation}
+                        onChange={(e) => setHotelLocation(e.target.value)}
+                        placeholder={t.hotelFields.locationPlaceholder}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.millFields.regNo}
-                    </label>
-                    <input
-                      type="text"
-                      value={millRegNo}
-                      onChange={(e) => setMillRegNo(e.target.value)}
-                      placeholder={t.millFields.regNoPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.millFields.capacity}
-                    </label>
-                    <input
-                      type="number"
-                      value={millingCapacity}
-                      onChange={(e) => setMillingCapacity(e.target.value)}
-                      placeholder="2000"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* SHOP FIELDS */}
-              {role === "SHOP" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.shopFields.name} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={shopName}
-                      onChange={(e) => setShopName(e.target.value)}
-                      placeholder={t.shopFields.namePlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.shopFields.location} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={shopLocation}
-                      onChange={(e) => setShopLocation(e.target.value)}
-                      placeholder={t.shopFields.locationPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.shopFields.regNo}
-                    </label>
-                    <input
-                      type="text"
-                      value={shopRegNo}
-                      onChange={(e) => setShopRegNo(e.target.value)}
-                      placeholder={t.shopFields.regNoPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* HOTEL FIELDS */}
-              {role === "HOTEL" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.hotelFields.name} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={hotelName}
-                      onChange={(e) => setHotelName(e.target.value)}
-                      placeholder={t.hotelFields.namePlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.hotelFields.location} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={hotelLocation}
-                      onChange={(e) => setHotelLocation(e.target.value)}
-                      placeholder={t.hotelFields.locationPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.hotelFields.category}
-                    </label>
-                    <select
-                      value={hotelCategory}
-                      onChange={(e) => setHotelCategory(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    >
-                      <option value="Star Class Hotel">Star Class Hotel / Resort</option>
-                      <option value="Restaurant & Catering">Restaurant & Catering</option>
-                      <option value="Boutique Hotel / Villa">Boutique Hotel / Villa</option>
-                      <option value="Bakery / Food Factory">Bakery / Food Manufacturer</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* STEP 3: GENERAL ACCOUNT CREDENTIALS */}
-            <div className="space-y-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {isSinhala ? "ප්‍රධාන ගිණුම් තොරතුරු" : "Account Owner & Login Credentials"}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* COMMON CREDENTIALS */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.common.fullName} <span className="text-red-500">*</span>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {t.common.name}
                   </label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder={t.common.fullNamePlaceholder}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    placeholder={t.common.namePlaceholder}
+                    className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.common.phone} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder={t.common.phonePlaceholder}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.common.email} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t.common.emailPlaceholder}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.common.password} <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {t.common.phone}
+                    </label>
                     <input
-                      type={showPassword ? "text" : "password"}
+                      type="tel"
                       required
-                      minLength={6}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={t.common.passwordPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder={t.common.phonePlaceholder}
+                      className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-sm"
-                    >
-                      {showPassword ? "👁️" : "🙈"}
-                    </button>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {t.common.email}
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t.common.emailPlaceholder}
+                      className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.common.confirmPassword} <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      required
-                      minLength={6}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder={t.common.confirmPasswordPlaceholder}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-sm"
-                    >
-                      {showConfirmPassword ? "👁️" : "🙈"}
-                    </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {t.common.password}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={6}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder={t.common.passwordPlaceholder}
+                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {t.common.confirmPassword}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                        minLength={6}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder={t.common.confirmPasswordPlaceholder}
+                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* SUBMIT BUTTON */}
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-3 rounded-2xl bg-emerald-600 py-4 px-6 text-base font-bold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-700 hover:shadow-xl disabled:opacity-60"
-              >
-                {loading ? (
-                  <>
-                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>{t.submitting}</span>
-                  </>
-                ) : (
-                  <>
-                    <span>{t.submit}</span>
-                    <span>→</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* LOGIN REDIRECT FOOTER */}
-            <div className="text-center pt-2 border-t border-slate-100 dark:border-slate-800">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {t.alreadyHaveAccount}{" "}
-                <Link
-                  href="/login"
-                  className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400"
+                {/* SUBMIT BUTTON (MATCHES LOGIN PAGE BUTTON) */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-6 flex h-14 w-full items-center justify-center rounded-xl bg-[#087f3f] text-base font-semibold text-white shadow-lg shadow-green-900/20 transition hover:bg-[#076f37] hover:shadow-xl disabled:opacity-60"
                 >
-                  {t.loginLink}
-                </Link>
-              </p>
+                  {loading ? t.submitting : t.submit}
+                </button>
+
+                {/* LOGIN LINK */}
+                <div className="text-center pt-2">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {t.alreadyAccount}{" "}
+                    <Link
+                      href="/login"
+                      className="font-semibold text-[#087f3f] hover:underline dark:text-emerald-400"
+                    >
+                      {t.loginLink}
+                    </Link>
+                  </p>
+                </div>
+              </form>
             </div>
-          </form>
+          </section>
         </div>
       </div>
     </main>
+  );
+}
+
+/* ============================================================
+   SHARED HERO COMPONENTS & ICONS (IDENTICAL TO LOGIN PAGE)
+============================================================ */
+
+function Feature({ icon, title }: { icon: string; title: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/10 p-3 backdrop-blur-md transition hover:bg-white/15 sm:p-4">
+      <div className="text-xl sm:text-2xl">{icon}</div>
+      <p className="mt-2 text-xs font-semibold text-white sm:text-sm">{title}</p>
+    </div>
+  );
+}
+
+function LeafLogo() {
+  return (
+    <div className="relative h-9 w-9">
+      <div className="absolute left-4 top-0 h-7 w-4 rotate-[-18deg] rounded-[100%_0_100%_0] bg-[#087f3f]" />
+      <div className="absolute left-1 top-4 h-6 w-4 rotate-[-42deg] rounded-[100%_0_100%_0] bg-[#41a85f]" />
+      <div className="absolute bottom-0 left-5 h-5 w-[2px] rotate-[20deg] bg-[#087f3f]" />
+    </div>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m3 3 18 18" />
+      <path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.8" />
+      <path d="M6.5 9.1C4.1 10.4 2.5 12 2.5 12s3.5 6 9.5 6c1.1 0 2.1-.2 3-.5" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
   );
 }

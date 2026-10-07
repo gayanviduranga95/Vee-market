@@ -172,9 +172,9 @@ export default function DashboardPage() {
       return;
     }
 
-    const role = localStorage.getItem(
-      "vee-market-user-role"
-    );
+    const role = (
+      localStorage.getItem("vee-market-user-role") || ""
+    ).toUpperCase();
 
     if (role === "MILL") {
       router.replace("/dashboard/mill");
