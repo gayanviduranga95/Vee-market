@@ -1,176 +1,245 @@
 "use client";
 
-import {
-  FormEvent,
-  useState,
-} from "react";
-
+import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import {
-  useLanguage,
-} from "../components/LanguageProvider";
-
+import { useLanguage } from "../components/LanguageProvider";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import ThemeSwitcher from "../components/ThemeSwitcher";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://172.18.228.12:8080";
+  process.env.NEXT_PUBLIC_API_URL || "http://172.18.228.12:8080";
+
+type RoleType = "FARMER" | "MILL" | "SHOP" | "HOTEL";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const isSinhala = language === "si";
 
-  const {
-    t,
-  } = useLanguage();
+  const [role, setRole] = useState<RoleType>("FARMER");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [name, setName] =
-    useState("");
+  // Role-specific fields
+  // Farmer
+  const [deviceNumber, setDeviceNumber] = useState("");
+  const [farmLocation, setFarmLocation] = useState("");
 
-  const [phone, setPhone] =
-    useState("");
+  // Mill
+  const [millName, setMillName] = useState("");
+  const [millLocation, setMillLocation] = useState("");
+  const [millRegNo, setMillRegNo] = useState("");
+  const [millingCapacity, setMillingCapacity] = useState("2000");
 
-  const [email, setEmail] =
-    useState("");
+  // Shop
+  const [shopName, setShopName] = useState("");
+  const [shopLocation, setShopLocation] = useState("");
+  const [shopRegNo, setShopRegNo] = useState("");
 
-  const [password, setPassword] =
-    useState("");
+  // Hotel
+  const [hotelName, setHotelName] = useState("");
+  const [hotelLocation, setHotelLocation] = useState("");
+  const [hotelCategory, setHotelCategory] = useState("Restaurant & Catering");
 
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [deviceNumber, setDeviceNumber] =
-    useState("");
+  const t = {
+    title: isSinhala ? "ගිණුමක් සාදන්න" : "Create an Account",
+    subtitle: isSinhala
+      ? "ඔබගේ භූමිකාව තෝරා වී මාර්කට් ජාලයට එක්වන්න."
+      : "Select your role and join the Vee Market national network.",
+    selectRole: isSinhala ? "ඔබ කවුද? (භූමිකාව තෝරන්න)" : "Who are you? (Select Role)",
+    roles: {
+      FARMER: {
+        title: isSinhala ? "ගොවියා" : "Farmer",
+        desc: isSinhala
+          ? "වී අස්වැන්න සාධාරණ මිලකට මෝල් වෙත සෘජුව විකුණන්න."
+          : "Sell raw paddy directly to mills with IoT moisture verification.",
+        badge: "🌾",
+      },
+      MILL: {
+        title: isSinhala ? "සහල් මෝල" : "Rice Mill",
+        desc: isSinhala
+          ? "ගොවීන්ගෙන් වී මිලදී ගෙන හෝටල් සහ සාප්පු වෙත සහල් සපයන්න."
+          : "Procure paddy lots from farmers & supply bulk rice to shops/hotels.",
+        badge: "🏭",
+      },
+      SHOP: {
+        title: isSinhala ? "වෙළඳසැල" : "Shop / Retail",
+        desc: isSinhala
+          ? "මෝල් වෙතින් තොග සහල් සෘජුව ඇණවුම් කරන්න."
+          : "Procure wholesale rice directly from certified mills with best rates.",
+        badge: "🏪",
+      },
+      HOTEL: {
+        title: isSinhala ? "හෝටලය / අවන්හල" : "Hotel / Restaurant",
+        desc: isSinhala
+          ? "ප්‍රමිතියෙන් උසස් සහල් සතිපතා හෝ තොග වශයෙන් ලබාගන්න."
+          : "Source high-quality rice batches on weekly or bulk schedules.",
+        badge: "🏨",
+      },
+    },
+    common: {
+      fullName: isSinhala ? "සම්පූර්ණ නම" : "Full Name",
+      fullNamePlaceholder: isSinhala ? "උදා: කේ.ඒ. සුනිල් ශාන්ත" : "e.g. Sunil Perera",
+      phone: isSinhala ? "දුරකථන අංකය" : "Mobile Phone Number",
+      phonePlaceholder: isSinhala ? "0771234567" : "0771234567",
+      email: isSinhala ? "විද්‍යුත් තැපෑල (Email)" : "Email Address",
+      emailPlaceholder: isSinhala ? "yourname@example.com" : "yourname@example.com",
+      password: isSinhala ? "මුරපදය" : "Password",
+      passwordPlaceholder: isSinhala ? "අවම අක්ෂර 6ක්" : "Minimum 6 characters",
+      confirmPassword: isSinhala ? "මුරපදය තහවුරු කරන්න" : "Confirm Password",
+      confirmPasswordPlaceholder: isSinhala ? "මුරපදය නැවත ඇතුළත් කරන්න" : "Re-enter password",
+    },
+    farmerFields: {
+      location: isSinhala ? "ගොවිපළ පිහිටි දිස්ත්‍රික්කය / ප්‍රදේශය" : "Farm District / Region",
+      locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව / අම්පාර" : "e.g. Polonnaruwa, Ampara, Galle",
+      deviceNumber: isSinhala ? "ස්මාර්ට් තෙතමන මීටර අංකය (විකල්ප)" : "Smart Moisture Meter ID (Optional)",
+      deviceHelper: isSinhala
+        ? "ඔබ සතුව ඩිජිටල් තෙතමන මාපකයක් ඇත්නම් (උදා: DEVICE-001) ඇතුළත් කරන්න. නැතහොත් පසුව එක් කළ හැක."
+        : "Connect your digital IoT meter (e.g. DEVICE-001) for verified readings. Leave blank if not yet assigned.",
+    },
+    millFields: {
+      name: isSinhala ? "සහල් මෝලේ නම" : "Rice Mill Name",
+      namePlaceholder: isSinhala ? "උදා: රජරට නවීන සහල් මෝල" : "e.g. Rajarata Modern Rice Mill",
+      location: isSinhala ? "මෝල පිහිටි ස්ථානය / දිස්ත්‍රික්කය" : "Mill Location / District",
+      locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව කාර්මික කලාපය" : "e.g. Polonnaruwa Industrial Zone",
+      regNo: isSinhala ? "ව්‍යාපාර / මෝල් ලියාපදිංචි අංකය" : "Business / Mill Reg Number",
+      regNoPlaceholder: isSinhala ? "උදා: ML-2024-984" : "e.g. ML-2024-984 (Optional)",
+      capacity: isSinhala ? "දිනකට ඇඹරුම් ධාරිතාව (kg)" : "Daily Milling Capacity (kg/day)",
+    },
+    shopFields: {
+      name: isSinhala ? "වෙළඳසැලේ නම" : "Shop / Store Name",
+      namePlaceholder: isSinhala ? "උදා: ලංකා තොග සහල් වෙළෙන්දෝ" : "e.g. Lanka Wholesale Rice Traders",
+      location: isSinhala ? "නගරය / ලිපිනය" : "Shop City / Address",
+      locationPlaceholder: isSinhala ? "උදා: පිටකොටුව තොග වෙළඳපොළ" : "e.g. Pettah Wholesale Market, Colombo",
+      regNo: isSinhala ? "ව්‍යාපාර ලියාපදිංචි අංකය (විකල්ප)" : "Business Reg No (Optional)",
+      regNoPlaceholder: isSinhala ? "උදා: PV-84930" : "e.g. PV-84930",
+    },
+    hotelFields: {
+      name: isSinhala ? "හෝටලයේ / අවන්හලේ නම" : "Hotel / Restaurant Name",
+      namePlaceholder: isSinhala ? "උදා: ග්‍රෑන්ඩ් හොටෙල් හෝ කැටරින්ග්" : "e.g. Grand Resort & Dining",
+      location: isSinhala ? "නගරය / ලිපිනය" : "City / Address",
+      locationPlaceholder: isSinhala ? "උදා: කොළඹ 03 / නුවරඑළිය" : "e.g. Colombo 03 / Kandy",
+      category: isSinhala ? "ආයතන වර්ගය" : "Establishment Type",
+    },
+    submit: isSinhala ? "ලියාපදිංචි වන්න" : "Create Account",
+    submitting: isSinhala ? "ලියාපදිංචි වෙමින්..." : "Creating Account...",
+    alreadyHaveAccount: isSinhala ? "දැනටමත් ගිණුමක් තිබේද?" : "Already have an account?",
+    loginLink: isSinhala ? "ඇතුළු වන්න (Login)" : "Sign In",
+    successMsg: isSinhala
+      ? "ගිණුම සාර්ථකව සාදන ලදී! ඇතුළු වීම වෙත යොමු කෙරේ..."
+      : "Account created successfully! Redirecting to login...",
+  };
 
-  const [accountType, setAccountType] =
-    useState("FARMER");
-
-  const [businessName, setBusinessName] =
-    useState("");
-
-  const [businessLocation, setBusinessLocation] =
-    useState("");
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  const [success, setSuccess] =
-    useState("");
-
-  async function handleRegister(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     setError("");
     setSuccess("");
 
-    if (
-      password !==
-      confirmPassword
-    ) {
-      setError(
-        t.register.passwordMismatch
-      );
-
+    if (!name.trim()) {
+      setError(isSinhala ? "කරුණාකර සම්පූර්ණ නම ඇතුළත් කරන්න." : "Please enter your full name.");
       return;
     }
-
+    if (!phone.trim()) {
+      setError(isSinhala ? "කරුණාකර දුරකථන අංකය ඇතුළත් කරන්න." : "Please enter your mobile phone number.");
+      return;
+    }
+    if (!email.trim()) {
+      setError(isSinhala ? "කරුණාකර විද්‍යුත් තැපෑල ඇතුළත් කරන්න." : "Please enter your email address.");
+      return;
+    }
     if (password.length < 6) {
-      setError(
-        t.register.passwordShort
-      );
-
+      setError(isSinhala ? "මුරපදය අවම වශයෙන් අක්ෂර 6කින් සමන්විත විය යුතුය." : "Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError(isSinhala ? "මුරපද දෙක නොගැලපේ. නැවත පරීක්ෂා කරන්න." : "Passwords do not match.");
       return;
     }
 
-    if (
-      ["SHOP", "HOTEL"].includes(accountType) &&
-      !businessName.trim()
-    ) {
-      setError(t.register.businessName);
+    // Role-specific validation
+    if (role === "MILL" && !millName.trim()) {
+      setError(isSinhala ? "කරුණාකර සහල් මෝලේ නම ඇතුළත් කරන්න." : "Please enter your rice mill name.");
+      return;
+    }
+    if (role === "SHOP" && !shopName.trim()) {
+      setError(isSinhala ? "කරුණාකර වෙළඳසැලේ නම ඇතුළත් කරන්න." : "Please enter your shop or business name.");
+      return;
+    }
+    if (role === "HOTEL" && !hotelName.trim()) {
+      setError(isSinhala ? "කරුණාකර හෝටලයේ හෝ අවන්හලේ නම ඇතුළත් කරන්න." : "Please enter your hotel or restaurant name.");
       return;
     }
 
     try {
       setLoading(true);
 
-      const response =
-        await fetch(
-          `${API_URL}/api/auth/register`,
-          {
-            method: "POST",
+      let payload: Record<string, unknown> = {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        phone: phone.trim(),
+      };
 
-            headers: {
-              "Content-Type":
-                "application/json",
+      if (role === "FARMER") {
+        payload = {
+          ...payload,
+          role: "FARMER",
+          deviceNumber: deviceNumber.trim() || null,
+          businessLocation: farmLocation.trim() || null,
+        };
+      } else if (role === "MILL") {
+        payload = {
+          ...payload,
+          role: "MILL",
+          businessName: millName.trim(),
+          businessLocation: millLocation.trim() || null,
+          deviceNumber: millRegNo.trim() || null,
+        };
+      } else if (role === "SHOP") {
+        payload = {
+          ...payload,
+          role: "BUYER",
+          businessType: "SHOP",
+          businessName: shopName.trim(),
+          businessLocation: shopLocation.trim() || null,
+          deviceNumber: shopRegNo.trim() || null,
+        };
+      } else if (role === "HOTEL") {
+        payload = {
+          ...payload,
+          role: "BUYER",
+          businessType: "HOTEL",
+          businessName: hotelName.trim(),
+          businessLocation: hotelLocation.trim() || null,
+          deviceNumber: hotelCategory.trim() || null,
+        };
+      }
 
-              Accept:
-                "application/json",
-            },
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-            body: JSON.stringify({
-              name: name.trim(),
-              email: email.trim(),
-              password,
-              phone: phone.trim(),
-              role: accountType === "MILL"
-                ? "MILL"
-                : accountType === "SHOP" || accountType === "HOTEL"
-                ? "BUYER"
-                : "FARMER",
-              deviceNumber: accountType === "FARMER"
-                ? deviceNumber.trim()
-                : null,
-              businessType: ["SHOP", "HOTEL"].includes(accountType)
-                ? accountType
-                : null,
-              businessName: ["SHOP", "HOTEL"].includes(accountType)
-                ? businessName.trim()
-                : null,
-              businessLocation: ["SHOP", "HOTEL"].includes(accountType)
-                ? businessLocation.trim() || null
-                : null,
-            }),
-          }
-        );
-
-      const contentType =
-        response.headers.get(
-          "content-type"
-        ) || "";
-
-      const rawResponse =
-        await response.text();
-
-      let data: {
-        message?: string;
-        error?: string;
-      } | null = null;
-
-      if (
-        rawResponse &&
-        contentType
-          .toLowerCase()
-          .includes(
-            "application/json"
-          )
-      ) {
+      const contentType = response.headers.get("content-type") || "";
+      const rawText = await response.text();
+      let data: { message?: string; error?: string } | null = null;
+      if (rawText && contentType.includes("application/json")) {
         try {
-          data =
-            JSON.parse(
-              rawResponse
-            );
+          data = JSON.parse(rawText);
         } catch {
           data = null;
         }
@@ -180,1004 +249,452 @@ export default function RegisterPage() {
         throw new Error(
           data?.message ||
             data?.error ||
-            t.register
-              .registrationError
+            (isSinhala
+              ? "ලියාපදිංචි වීම අසාර්ථක විය. නැවත උත්සාහ කරන්න."
+              : "Registration failed. Please check details and try again.")
         );
       }
 
-      setSuccess(
-        t.register.success
-      );
-
+      setSuccess(t.successMsg);
       setTimeout(() => {
         router.push("/login");
-      }, 1200);
-
+      }, 1500);
     } catch (err) {
-      console.error(
-        "Registration error:",
-        err
-      );
-
-      if (
-        err instanceof TypeError
-      ) {
-        setError(
-          t.register
-            .connectionError
-        );
-      } else if (
+      console.error("Registration error:", err);
+      setError(
         err instanceof Error
-      ) {
-        setError(
-          err.message
-        );
-      } else {
-        setError(
-          t.register
-            .registrationError
-        );
-      }
+          ? err.message
+          : isSinhala
+          ? "සේවාදායකය හා සම්බන්ධ විය නොහැක."
+          : "Unable to connect to the server."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main
-      className="
-        min-h-screen
-        bg-[#edf5ef]
-        dark:bg-background
-      "
-    >
-      <div
-        className="
-          mx-auto
-          min-h-screen
-          w-full
-          max-w-[1700px]
-          xl:p-6
-        "
-      >
-        <div
-          className="
-            relative
-            flex
-            min-h-screen
-            flex-col
-            overflow-hidden
-            bg-white
-            dark:bg-surface
-
-            xl:flex-row
-            xl:min-h-[calc(100vh-48px)]
-            xl:rounded-[30px]
-            xl:shadow-[0_20px_70px_rgba(0,0,0,0.12)]
-          "
-        >
-
-          {/* HERO */}
-
-          <section
-            className="
-              relative
-              flex
-              min-h-[430px]
-              w-full
-              flex-col
-              justify-end
-              overflow-hidden
-
-              sm:min-h-[500px]
-              xl:min-h-0
-              xl:w-[55%]
-            "
+    <main className="min-h-screen bg-[#edf5ef] dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl">
+        {/* TOP BAR */}
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            href="/"
+            className="flex items-center gap-3 text-emerald-800 dark:text-emerald-400 font-extrabold text-2xl tracking-tight"
           >
-            <div
-              className="
-                absolute
-                inset-0
-                bg-cover
-                bg-center
-              "
-              style={{
-                backgroundImage:
-                  "url('/vee-market-hero.png')",
-              }}
-            />
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md text-xl">
+              🌾
+            </span>
+            <span>Vee Market</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeSwitcher />
+            <LanguageSwitcher />
+          </div>
+        </div>
 
-            <div
-              className="
-                absolute
-                inset-0
-                bg-gradient-to-t
-                from-[#04351f]/95
-                via-[#04351f]/45
-                to-transparent
-              "
-            />
+        {/* MAIN CARD */}
+        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          {/* HEADER BANNER */}
+          <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 px-6 py-8 text-white sm:px-10">
+            <h1 className="text-2xl sm:text-3xl font-extrabold">{t.title}</h1>
+            <p className="mt-2 text-emerald-100 text-sm sm:text-base max-w-2xl">
+              {t.subtitle}
+            </p>
+          </div>
 
-            {/* LOGO */}
+          <form onSubmit={handleRegister} className="p-6 sm:p-10 space-y-8">
+            {/* STEP 1: ROLE SELECTOR CARDS */}
+            <div>
+              <label className="block text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3">
+                {t.selectRole}
+              </label>
 
-            <div
-              className="
-                absolute
-                left-5
-                top-5
-                z-10
-                flex
-                items-center
-                gap-3
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {(["FARMER", "MILL", "SHOP", "HOTEL"] as RoleType[]).map((r) => {
+                  const roleMeta = t.roles[r];
+                  const isSelected = role === r;
 
-                sm:left-8
-                sm:top-8
-              "
-            >
-              <div
-                className="
-                  flex
-                  h-11
-                  w-11
-                  items-center
-                  justify-center
-                  rounded-xl
-                  bg-white/90
-                  shadow-lg
-                "
-              >
-                <LeafLogo />
-              </div>
-
-              <div>
-                <h1
-                  className="
-                    text-lg
-                    font-bold
-                    text-white
-                  "
-                >
-                  {t.brand.name}
-                </h1>
-
-                <p
-                  className="
-                    text-xs
-                    text-white/80
-                  "
-                >
-                  {t.brand.tagline}
-                </p>
+                  return (
+                    <button
+                      type="button"
+                      key={r}
+                      onClick={() => setRole(r)}
+                      className={`relative flex flex-col p-4 text-left rounded-2xl border-2 transition duration-200 ${
+                        isSelected
+                          ? "border-emerald-600 bg-emerald-50/70 shadow-md dark:border-emerald-500 dark:bg-emerald-950/40"
+                          : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/60 dark:hover:border-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-3xl">{roleMeta.badge}</span>
+                        {isSelected && (
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white text-xs font-bold">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-bold text-slate-900 dark:text-white text-base">
+                        {roleMeta.title}
+                      </span>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                        {roleMeta.desc}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* HERO TEXT */}
+            {/* ERROR / SUCCESS NOTICES */}
+            {error && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 flex items-center gap-3">
+                <span>⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+            {success && (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300 flex items-center gap-3">
+                <span>🎉</span>
+                <span>{success}</span>
+              </div>
+            )}
 
-            <div
-              className="
-                relative
-                z-10
-                p-5
+            {/* STEP 2: ROLE-SPECIFIC SPECIALIZED FIELDS */}
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 p-5 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-4">
+              <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400 font-bold text-sm uppercase tracking-wide">
+                <span>{t.roles[role].badge}</span>
+                <span>
+                  {isSinhala
+                    ? `${t.roles[role].title} සඳහා විශේෂිත තොරතුරු`
+                    : `Specialized Information for ${t.roles[role].title}`}
+                </span>
+              </div>
 
-                sm:p-8
-                md:p-10
-                xl:p-14
-              "
-            >
-              <div
-                className="
-                  max-w-[650px]
-                "
-              >
-                <h2
-                  className="
-                    text-3xl
-                    font-bold
-                    leading-tight
-                    tracking-tight
-                    text-white
+              {/* FARMER FIELDS */}
+              {role === "FARMER" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.farmerFields.location}
+                    </label>
+                    <input
+                      type="text"
+                      value={farmLocation}
+                      onChange={(e) => setFarmLocation(e.target.value)}
+                      placeholder={t.farmerFields.locationPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
 
-                    sm:text-4xl
-                    md:text-5xl
-                    xl:text-[56px]
-                  "
-                >
-                  {t.register.heroTitle}
-                </h2>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.farmerFields.deviceNumber}
+                    </label>
+                    <input
+                      type="text"
+                      value={deviceNumber}
+                      onChange={(e) => setDeviceNumber(e.target.value)}
+                      placeholder="e.g. DEVICE-001"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                      {t.farmerFields.deviceHelper}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-                <p
-                  className="
-                    mt-4
-                    max-w-[560px]
-                    text-sm
-                    leading-6
-                    text-white/90
+              {/* MILL FIELDS */}
+              {role === "MILL" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.millFields.name} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={millName}
+                      onChange={(e) => setMillName(e.target.value)}
+                      placeholder={t.millFields.namePlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
 
-                    sm:text-base
-                    md:text-lg
-                  "
-                >
-                  {t.register.heroDescription}
-                </p>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.millFields.location} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={millLocation}
+                      onChange={(e) => setMillLocation(e.target.value)}
+                      placeholder={t.millFields.locationPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
 
-                <div
-                  className="
-                    mt-6
-                    grid
-                    grid-cols-3
-                    gap-2
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.millFields.regNo}
+                    </label>
+                    <input
+                      type="text"
+                      value={millRegNo}
+                      onChange={(e) => setMillRegNo(e.target.value)}
+                      placeholder={t.millFields.regNoPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
 
-                    sm:gap-3
-                    md:gap-4
-                  "
-                >
-                  <Feature
-                    icon="🌱"
-                    title={
-                      t.register.fairMarket
-                    }
-                  />
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.millFields.capacity}
+                    </label>
+                    <input
+                      type="number"
+                      value={millingCapacity}
+                      onChange={(e) => setMillingCapacity(e.target.value)}
+                      placeholder="2000"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+                </div>
+              )}
 
-                  <Feature
-                    icon="🤝"
-                    title={
-                      t.register
-                        .trustedNetwork
-                    }
-                  />
+              {/* SHOP FIELDS */}
+              {role === "SHOP" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.shopFields.name} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={shopName}
+                      onChange={(e) => setShopName(e.target.value)}
+                      placeholder={t.shopFields.namePlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
 
-                  <Feature
-                    icon="🚚"
-                    title={
-                      t.register
-                        .reliableSupply
-                    }
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.shopFields.location} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={shopLocation}
+                      onChange={(e) => setShopLocation(e.target.value)}
+                      placeholder={t.shopFields.locationPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.shopFields.regNo}
+                    </label>
+                    <input
+                      type="text"
+                      value={shopRegNo}
+                      onChange={(e) => setShopRegNo(e.target.value)}
+                      placeholder={t.shopFields.regNoPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* HOTEL FIELDS */}
+              {role === "HOTEL" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.hotelFields.name} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={hotelName}
+                      onChange={(e) => setHotelName(e.target.value)}
+                      placeholder={t.hotelFields.namePlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.hotelFields.location} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={hotelLocation}
+                      onChange={(e) => setHotelLocation(e.target.value)}
+                      placeholder={t.hotelFields.locationPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {t.hotelFields.category}
+                    </label>
+                    <select
+                      value={hotelCategory}
+                      onChange={(e) => setHotelCategory(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    >
+                      <option value="Star Class Hotel">Star Class Hotel / Resort</option>
+                      <option value="Restaurant & Catering">Restaurant & Catering</option>
+                      <option value="Boutique Hotel / Villa">Boutique Hotel / Villa</option>
+                      <option value="Bakery / Food Factory">Bakery / Food Manufacturer</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* STEP 3: GENERAL ACCOUNT CREDENTIALS */}
+            <div className="space-y-4">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {isSinhala ? "ප්‍රධාන ගිණුම් තොරතුරු" : "Account Owner & Login Credentials"}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {t.common.fullName} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t.common.fullNamePlaceholder}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* FORM */}
-
-          <section
-            className="
-              relative
-              flex
-              w-full
-              flex-1
-              items-center
-              justify-center
-              bg-white
-              dark:bg-surface
-
-              px-5
-              py-10
-
-              sm:px-8
-              md:px-12
-
-              xl:w-[45%]
-              xl:px-14
-              xl:py-10
-            "
-          >
-
-            {/* GLOBAL LANGUAGE SWITCH */}
-
-            <div
-              className="
-                absolute
-                right-4
-                top-4
-
-                sm:right-7
-                sm:top-7
-              "
-            >
-              <div className="flex items-center gap-2">
-                <ThemeSwitcher />
-                <LanguageSwitcher />
-              </div>
-            </div>
-
-            <div
-              className="
-                w-full
-                max-w-[500px]
-                pt-10
-
-                sm:pt-14
-                xl:pt-4
-              "
-            >
-
-              {/* LOGO */}
-
-              <div
-                className="
-                  mb-6
-                  text-center
-                "
-              >
-                <div
-                  className="
-                    mx-auto
-                    flex
-                    h-14
-                    w-14
-                    items-center
-                    justify-center
-                    rounded-2xl
-                    bg-green-50
-                  "
-                >
-                  <LeafLogo />
-                </div>
-
-                <h2
-                  className="
-                    mt-3
-                    text-xl
-                    font-bold
-                    text-[#063b25]
-
-                    sm:text-2xl
-                  "
-                >
-                  {t.brand.name}
-                </h2>
-              </div>
-
-              <div className="text-center">
-                <h3
-                  className="
-                    text-3xl
-                    font-bold
-                    tracking-tight
-                    text-slate-900
-
-                    sm:text-4xl
-                  "
-                >
-                  {t.register.title}
-                </h3>
-
-                <p
-                  className="
-                    mt-2
-                    text-sm
-                    text-slate-500
-
-                    sm:text-base
-                  "
-                >
-                  {t.register.description}
-                </p>
-              </div>
-
-              <form
-                onSubmit={
-                  handleRegister
-                }
-                className="
-                  mt-7
-                  space-y-4
-                "
-              >
-
-                <Input
-                  label={
-                    t.register.name
-                  }
-                  value={name}
-                  onChange={
-                    setName
-                  }
-                  placeholder={
-                    t.register
-                      .namePlaceholder
-                  }
-                  autoComplete="name"
-                  required
-                />
-
-                <Input
-                  label={
-                    t.register.phone
-                  }
-                  value={phone}
-                  onChange={
-                    setPhone
-                  }
-                  placeholder={
-                    t.register
-                      .phonePlaceholder
-                  }
-                  type="tel"
-                  autoComplete="tel"
-                  required
-                />
-
-                <Input
-                  label={
-                    t.register.email
-                  }
-                  value={email}
-                  onChange={
-                    setEmail
-                  }
-                  placeholder={
-                    t.register
-                      .emailPlaceholder
-                  }
-                  type="email"
-                  autoComplete="email"
-                  required
-                />
-
-                <Input
-                  label={
-                    t.register
-                      .deviceNumber
-                  }
-                  value={
-                    deviceNumber
-                  }
-                  onChange={
-                    setDeviceNumber
-                  }
-                  placeholder={
-                    t.register
-                      .deviceNumberPlaceholder
-                  }
-                  required={accountType === "FARMER"}
-                />
-
-                {/* ACCOUNT TYPE */}
 
                 <div>
-                  <label
-                    className="
-                      mb-2
-                      block
-                      text-sm
-                      font-medium
-                      text-slate-700
-                    "
-                  >
-                    {
-                      t.register
-                        .accountType
-                    }
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {t.common.phone} <span className="text-red-500">*</span>
                   </label>
-
-                  <select
-                    value={accountType}
-                    onChange={(event) => setAccountType(event.target.value)}
-                    className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  >
-                    <option value="FARMER">🌾 {t.register.farmer}</option>
-                    <option value="MILL">🏭 {t.register.mill}</option>
-                    <option value="SHOP">🏪 {t.register.shop}</option>
-                    <option value="HOTEL">🏨 {t.register.hotel}</option>
-                  </select>
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder={t.common.phonePlaceholder}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  />
                 </div>
 
-                {(accountType === "SHOP" || accountType === "HOTEL") && (
-                  <>
-                    <Input
-                      label={t.register.businessName}
-                      value={businessName}
-                      onChange={setBusinessName}
-                      placeholder={t.register.businessNamePlaceholder}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {t.common.email} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t.common.emailPlaceholder}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {t.common.password} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
                       required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t.common.passwordPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-sm"
+                    >
+                      {showPassword ? "👁️" : "🙈"}
+                    </button>
+                  </div>
+                </div>
 
-                    <Input
-                      label={t.register.businessLocation}
-                      value={businessLocation}
-                      onChange={setBusinessLocation}
-                      placeholder={t.register.businessLocationPlaceholder}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {t.common.confirmPassword} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t.common.confirmPasswordPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
-                  </>
-                )}
-
-                <PasswordInput
-                  label={
-                    t.register
-                      .password
-                  }
-                  value={
-                    password
-                  }
-                  onChange={
-                    setPassword
-                  }
-                  placeholder={
-                    t.register
-                      .passwordPlaceholder
-                  }
-                  show={
-                    showPassword
-                  }
-                  onToggle={() =>
-                    setShowPassword(
-                      !showPassword
-                    )
-                  }
-                  autoComplete="new-password"
-                />
-
-                <PasswordInput
-                  label={
-                    t.register
-                      .confirmPassword
-                  }
-                  value={
-                    confirmPassword
-                  }
-                  onChange={
-                    setConfirmPassword
-                  }
-                  placeholder={
-                    t.register
-                      .confirmPasswordPlaceholder
-                  }
-                  show={
-                    showConfirmPassword
-                  }
-                  onToggle={() =>
-                    setShowConfirmPassword(
-                      !showConfirmPassword
-                    )
-                  }
-                  autoComplete="new-password"
-                />
-
-                {error && (
-                  <div
-                    className="
-                      rounded-xl
-                      border
-                      border-red-100
-                      bg-red-50
-                      px-4
-                      py-3
-                      text-sm
-                      text-red-700
-                    "
-                  >
-                    {error}
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-sm"
+                    >
+                      {showConfirmPassword ? "👁️" : "🙈"}
+                    </button>
                   </div>
-                )}
-
-                {success && (
-                  <div
-                    className="
-                      rounded-xl
-                      border
-                      border-green-100
-                      bg-green-50
-                      px-4
-                      py-3
-                      text-sm
-                      text-green-700
-                    "
-                  >
-                    {success}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="
-                    h-14
-                    w-full
-                    rounded-xl
-                    bg-[#087f3f]
-                    text-base
-                    font-semibold
-                    text-white
-                    shadow-lg
-                    transition
-
-                    hover:bg-[#066b35]
-
-                    disabled:cursor-not-allowed
-                    disabled:opacity-60
-                  "
-                >
-                  {loading
-                    ? t.register
-                        .creatingAccount
-                    : t.register
-                        .createAccount}
-                </button>
-              </form>
-
-              <p
-                className="
-                  mt-6
-                  text-center
-                  text-sm
-                  text-slate-500
-                "
-              >
-                {
-                  t.register
-                    .alreadyAccount
-                }{" "}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    router.push(
-                      "/login"
-                    )
-                  }
-                  className="
-                    font-semibold
-                    text-[#087f3f]
-                    hover:underline
-                  "
-                >
-                  {t.common?.login ??
-                    "Login"}
-                </button>
-              </p>
-
-              <div
-                className="
-                  mt-7
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  text-xs
-                  text-slate-400
-                "
-              >
-                <span
-                  className="
-                    flex
-                    h-6
-                    w-6
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-green-50
-                    text-green-700
-                  "
-                >
-                  ✓
-                </span>
-
-                {t.register.secure}
+                </div>
               </div>
             </div>
-          </section>
+
+            {/* SUBMIT BUTTON */}
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-3 rounded-2xl bg-emerald-600 py-4 px-6 text-base font-bold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-700 hover:shadow-xl disabled:opacity-60"
+              >
+                {loading ? (
+                  <>
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>{t.submitting}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{t.submit}</span>
+                    <span>→</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* LOGIN REDIRECT FOOTER */}
+            <div className="text-center pt-2 border-t border-slate-100 dark:border-slate-800">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {t.alreadyHaveAccount}{" "}
+                <Link
+                  href="/login"
+                  className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400"
+                >
+                  {t.loginLink}
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </main>
-  );
-}
-
-function Input({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  autoComplete,
-  required = false,
-}: {
-  label: string;
-  value: string;
-  onChange: (
-    value: string
-  ) => void;
-  placeholder?: string;
-  type?: string;
-  autoComplete?: string;
-  required?: boolean;
-}) {
-  return (
-    <div>
-      <label
-        className="
-          mb-2
-          block
-          text-sm
-          font-medium
-          text-slate-700
-        "
-      >
-        {label}
-      </label>
-
-      <input
-        type={type}
-        required={required}
-        autoComplete={
-          autoComplete
-        }
-        value={value}
-        onChange={(event) =>
-          onChange(
-            event.target.value
-          )
-        }
-        placeholder={
-          placeholder
-        }
-        className="
-          h-14
-          w-full
-          rounded-xl
-          border
-          border-slate-200
-          bg-slate-50
-          px-4
-          text-sm
-          text-slate-900
-          outline-none
-          transition
-
-          placeholder:text-slate-400
-
-          focus:border-[#087f3f]
-          focus:bg-white
-          focus:ring-4
-          focus:ring-green-100
-        "
-      />
-    </div>
-  );
-}
-
-function PasswordInput({
-  label,
-  value,
-  onChange,
-  placeholder,
-  show,
-  onToggle,
-  autoComplete,
-}: {
-  label: string;
-  value: string;
-  onChange: (
-    value: string
-  ) => void;
-  placeholder: string;
-  show: boolean;
-  onToggle: () => void;
-  autoComplete?: string;
-}) {
-  return (
-    <div>
-      <label
-        className="
-          mb-2
-          block
-          text-sm
-          font-medium
-          text-slate-700
-        "
-      >
-        {label}
-      </label>
-
-      <div className="relative">
-        <input
-          type={
-            show
-              ? "text"
-              : "password"
-          }
-          required
-          autoComplete={
-            autoComplete
-          }
-          value={value}
-          onChange={(event) =>
-            onChange(
-              event.target.value
-            )
-          }
-          placeholder={
-            placeholder
-          }
-          className="
-            h-14
-            w-full
-            rounded-xl
-            border
-            border-slate-200
-            bg-slate-50
-            px-4
-            pr-12
-            text-sm
-            text-slate-900
-            outline-none
-            transition
-
-            placeholder:text-slate-400
-
-            focus:border-[#087f3f]
-            focus:bg-white
-            focus:ring-4
-            focus:ring-green-100
-          "
-        />
-
-        <button
-          type="button"
-          onClick={onToggle}
-          className="
-            absolute
-            right-4
-            top-1/2
-            -translate-y-1/2
-            text-slate-400
-          "
-        >
-          {show ? (
-            <EyeOffIcon />
-          ) : (
-            <EyeIcon />
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Feature({
-  icon,
-  title,
-}: {
-  icon: string;
-  title: string;
-}) {
-  return (
-    <div
-      className="
-        rounded-xl
-        border
-        border-white/20
-        bg-white/15
-        px-2
-        py-3
-        text-center
-        backdrop-blur-md
-
-        sm:rounded-2xl
-        sm:px-3
-        sm:py-4
-      "
-    >
-      <div
-        className="
-          text-xl
-          sm:text-2xl
-        "
-      >
-        {icon}
-      </div>
-
-      <p
-        className="
-          mt-2
-          text-[10px]
-          font-semibold
-          leading-tight
-          text-white
-
-          sm:text-xs
-          md:text-sm
-        "
-      >
-        {title}
-      </p>
-    </div>
-  );
-}
-
-function LeafLogo() {
-  return (
-    <div
-      className="
-        relative
-        h-9
-        w-9
-      "
-    >
-      <div
-        className="
-          absolute
-          left-4
-          top-0
-          h-7
-          w-4
-          rotate-[-18deg]
-          rounded-[100%_0_100%_0]
-          bg-[#087f3f]
-        "
-      />
-
-      <div
-        className="
-          absolute
-          left-1
-          top-4
-          h-6
-          w-4
-          rotate-[-42deg]
-          rounded-[100%_0_100%_0]
-          bg-[#41a85f]
-        "
-      />
-
-      <div
-        className="
-          absolute
-          bottom-0
-          left-5
-          h-5
-          w-[2px]
-          rotate-[20deg]
-          bg-[#087f3f]
-        "
-      />
-    </div>
-  );
-}
-
-function EyeIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-
-      <circle
-        cx="12"
-        cy="12"
-        r="2.5"
-      />
-    </svg>
-  );
-}
-
-function EyeOffIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m3 3 18 18" />
-
-      <path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.8" />
-
-      <path d="M6.5 9.1C4.1 10.4 2.5 12 2.5 12s3.5 6 9.5 6c1.1 0 2.1-.2 3-.5" />
-
-      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    </svg>
   );
 }
