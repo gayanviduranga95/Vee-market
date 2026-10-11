@@ -101,7 +101,7 @@ class MoistureControllerIntegrationTest {
                 );
 
         String uniqueDeviceNumber = farmer.getDeviceNumber();
-        String requestBody = "{\"deviceNumber\":\"" + uniqueDeviceNumber + "\",\"moisturePercentage\":14.5}";
+        String requestBody = "{\"deviceNumber\":\"" + uniqueDeviceNumber + "\",\"moisturePercentage\":14.5,\"source\":\"IOT_DEVICE\"}";
 
         mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
@@ -116,5 +116,197 @@ class MoistureControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.deviceNumber").value(uniqueDeviceNumber))
                 .andExpect(jsonPath("$.moisturePercentage").value(14.5));
+    }
+
+    @Test
+    void farmerCanConnectAnyDeviceAndAttachVerifiedReading() throws Exception {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        farmer,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_FARMER"))
+                );
+
+        String guestDevice = "VM-METER-999";
+        String requestBody = "{\"deviceNumber\":\"" + guestDevice + "\",\"moisturePercentage\":13.8,\"source\":\"IOT_DEVICE\",\"verificationStatus\":\"DEVICE_REPORTED\",\"deviceMeasurementId\":\"MEAS-101\"}";
+
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.deviceNumber").value(guestDevice))
+                .andExpect(jsonPath("$.moisturePercentage").value(13.8))
+                .andExpect(jsonPath("$.source").value("IOT_DEVICE"))
+                .andExpect(jsonPath("$.verificationStatus").value("DEVICE_REPORTED"))
+                .andExpect(jsonPath("$.deviceMeasurementId").value("MEAS-101"));
+    }
+
+    @Test
+    void duplicateDeviceMeasurementIsRejected() throws Exception {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        farmer,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_FARMER"))
+                );
+
+        String requestBody = "{\"deviceNumber\":\"VM-METER-001\",\"moisturePercentage\":12.4,\"source\":\"IOT_DEVICE\",\"deviceMeasurementId\":\"UNIQUE-SEQ-123\"}";
+
+        // First attempt succeeds
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated());
+
+        // Replay attempt with same device measurement ID is rejected
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void invalidMoisturePercentageIsRejected() throws Exception {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        farmer,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_FARMER"))
+                );
+
+        // Less than 0.10 (Bean validation @DecimalMin fails -> 422 Unprocessable Entity)
+        String lowBody = "{\"deviceNumber\":\"DEV-1\",\"moisturePercentage\":0.05}";
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(lowBody))
+                .andExpect(status().isUnprocessableEntity());
+
+        // Greater than 60.00 (Bean validation @DecimalMax fails -> 422 Unprocessable Entity)
+        String highBody = "{\"deviceNumber\":\"DEV-1\",\"moisturePercentage\":75.00}";
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(highBody))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void unauthorizedFarmerCannotAttachReadingToAnotherFarmersLot() throws Exception {
+        // Create second farmer
+        User farmerTwo = new User();
+        farmerTwo.setName("Farmer Two");
+        farmerTwo.setEmail("farmer.two." + System.nanoTime() + "@test.com");
+        farmerTwo.setPassword("encoded-password");
+        farmerTwo.setRole(Role.FARMER);
+        farmerTwo = userRepository.save(farmerTwo);
+
+        FarmerProfile profileTwo = new FarmerProfile();
+        profileTwo.setUser(farmerTwo);
+        farmerProfileRepository.save(profileTwo);
+
+        UsernamePasswordAuthenticationToken authenticationTwo =
+                new UsernamePasswordAuthenticationToken(
+                        farmerTwo,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_FARMER"))
+                );
+
+        String requestBody = "{\"deviceNumber\":\"DEV-XYZ\",\"moisturePercentage\":14.0,\"source\":\"IOT_DEVICE\"}";
+
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authenticationTwo))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void manualMoistureReadingIsRejected() throws Exception {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        farmer,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_FARMER"))
+                );
+
+        // Manual source is rejected
+        String manualBody = "{\"deviceNumber\":\"MANUAL-01\",\"moisturePercentage\":14.0,\"source\":\"MANUAL\"}";
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(manualBody))
+                .andExpect(status().isBadRequest());
+
+        // Missing source (defaults to unpermitted manual) is rejected
+        String noSourceBody = "{\"deviceNumber\":\"MANUAL-01\",\"moisturePercentage\":14.0}";
+        mockMvc.perform(post("/api/farmer/lots/{lotId}/moisture", lot.getId())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(noSourceBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void farmerCanCreateLotWithoutMoistureReading() throws Exception {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        farmer,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_FARMER"))
+                );
+
+        String lotRequestBody = "{"
+                + "\"farmId\":" + farm.getId() + ","
+                + "\"productType\":\"PADDY\","
+                + "\"riceType\":\"SAMBA\","
+                + "\"quantityKg\":1500.00,"
+                + "\"askingPricePerKg\":120.00,"
+                + "\"availableDate\":\"" + LocalDate.now().plusDays(5) + "\""
+                + "}";
+
+        mockMvc.perform(post("/api/farmer/lots")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(lotRequestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.riceType").value("SAMBA"));
+    }
+
+    @Test
+    void farmerCanCreateLotWithConnectedMoistureReading() throws Exception {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        farmer,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_FARMER"))
+                );
+
+        String lotRequestBody = "{"
+                + "\"farmId\":" + farm.getId() + ","
+                + "\"productType\":\"PADDY\","
+                + "\"riceType\":\"KEERI_SAMBA\","
+                + "\"quantityKg\":3000.00,"
+                + "\"askingPricePerKg\":145.00,"
+                + "\"availableDate\":\"" + LocalDate.now().plusDays(2) + "\","
+                + "\"moistureReading\":{"
+                + "  \"deviceNumber\":\"VM-IOT-404\","
+                + "  \"moisturePercentage\":13.20,"
+                + "  \"source\":\"IOT_DEVICE\","
+                + "  \"verificationStatus\":\"DEVICE_REPORTED\","
+                + "  \"deviceMeasurementId\":\"LOT-READING-99\""
+                + "}"
+                + "}";
+
+        mockMvc.perform(post("/api/farmer/lots")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(lotRequestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists());
     }
 }

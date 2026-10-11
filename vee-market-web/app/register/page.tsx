@@ -28,7 +28,6 @@ export default function RegisterPage() {
 
   // Role-specific fields
   // Farmer
-  const [deviceNumber, setDeviceNumber] = useState("");
   const [farmLocation, setFarmLocation] = useState("");
 
   // Mill
@@ -207,7 +206,6 @@ export default function RegisterPage() {
         payload = {
           ...payload,
           role: "FARMER",
-          deviceNumber: deviceNumber.trim() || null,
           businessLocation: farmLocation.trim() || null,
         };
       } else if (role === "MILL") {
@@ -420,21 +418,6 @@ export default function RegisterPage() {
                         placeholder={t.farmerFields.locationPlaceholder}
                         className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                       />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.farmerFields.deviceNumber}
-                      </label>
-                      <input
-                        type="text"
-                        value={deviceNumber}
-                        onChange={(e) => setDeviceNumber(e.target.value)}
-                        placeholder={t.farmerFields.devicePlaceholder}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
-                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                        {t.farmerFields.deviceHelp}
-                      </p>
                     </div>
                   </div>
                 )}

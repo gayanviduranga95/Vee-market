@@ -48,20 +48,18 @@ public class AuthService {
             throw new IllegalArgumentException("Email is already registered");
         }
 
-        if (request.getDeviceNumber() != null
-                && !request.getDeviceNumber().isBlank()
-                && userRepository.existsByDeviceNumber(request.getDeviceNumber())) {
-            throw new IllegalArgumentException("Device number is already registered");
-        }
-
         Role role;
 
         try {
             role = Role.valueOf(request.getRole().toUpperCase());
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException(
-                    "Invalid role. Use FARMER, MILL, BUYER, or ADMIN"
+                    "Invalid role. Use FARMER, MILL, or BUYER"
             );
+        }
+
+        if (role == Role.ADMIN) {
+            throw new IllegalArgumentException("Registration with ADMIN role is not allowed");
         }
 
         User user = new User();
@@ -71,7 +69,9 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
         user.setRole(role);
-        user.setDeviceNumber(request.getDeviceNumber());
+        user.setDeviceNumber(request.getDeviceNumber() != null && !request.getDeviceNumber().isBlank()
+                ? request.getDeviceNumber().trim()
+                : null);
 
         User savedUser = userRepository.save(user);
 

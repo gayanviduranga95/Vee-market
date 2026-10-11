@@ -27,10 +27,28 @@ public class MoistureReading {
     @Column(name = "measured_at", nullable = false)
     private LocalDateTime measuredAt;
 
+    @Column(name = "source", nullable = false, length = 30)
+    private String source = "MANUAL";
+
+    @Column(name = "verification_status", nullable = false, length = 30)
+    private String verificationStatus = "UNVERIFIED";
+
+    @Column(name = "device_measurement_id", length = 100)
+    private String deviceMeasurementId;
+
+    @Column(name = "raw_payload", columnDefinition = "TEXT")
+    private String rawPayload;
+
     @PrePersist
     protected void onCreate() {
         if (measuredAt == null) {
             measuredAt = LocalDateTime.now();
+        }
+        if (source == null) {
+            source = "MANUAL";
+        }
+        if (verificationStatus == null) {
+            verificationStatus = "UNVERIFIED";
         }
     }
 
@@ -68,5 +86,37 @@ public class MoistureReading {
 
     public void setMeasuredAt(LocalDateTime measuredAt) {
         this.measuredAt = measuredAt;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getVerificationStatus() {
+        return verificationStatus;
+    }
+
+    public void setVerificationStatus(String verificationStatus) {
+        this.verificationStatus = verificationStatus;
+    }
+
+    public String getDeviceMeasurementId() {
+        return deviceMeasurementId;
+    }
+
+    public void setDeviceMeasurementId(String deviceMeasurementId) {
+        this.deviceMeasurementId = deviceMeasurementId;
+    }
+
+    public String getRawPayload() {
+        return rawPayload;
+    }
+
+    public void setRawPayload(String rawPayload) {
+        this.rawPayload = rawPayload;
     }
 }

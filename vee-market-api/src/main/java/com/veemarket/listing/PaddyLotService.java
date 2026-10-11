@@ -17,15 +17,18 @@ public class PaddyLotService {
     private final PaddyLotRepository paddyLotRepository;
     private final FarmRepository farmRepository;
     private final FarmerProfileRepository farmerProfileRepository;
+    private final com.veemarket.moisture.MoistureReadingService moistureReadingService;
 
     public PaddyLotService(
             PaddyLotRepository paddyLotRepository,
             FarmRepository farmRepository,
-            FarmerProfileRepository farmerProfileRepository
+            FarmerProfileRepository farmerProfileRepository,
+            com.veemarket.moisture.MoistureReadingService moistureReadingService
     ) {
         this.paddyLotRepository = paddyLotRepository;
         this.farmRepository = farmRepository;
         this.farmerProfileRepository = farmerProfileRepository;
+        this.moistureReadingService = moistureReadingService;
     }
 
     @Transactional
@@ -71,6 +74,10 @@ public class PaddyLotService {
         lot.setStatus("ACTIVE");
 
         PaddyLot savedLot = paddyLotRepository.save(lot);
+
+        if (request.getMoistureReading() != null) {
+            moistureReadingService.createReading(user, savedLot.getId(), request.getMoistureReading());
+        }
 
         return toResponse(savedLot);
     }

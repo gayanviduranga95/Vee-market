@@ -58,19 +58,54 @@ public class MoistureReadingService {
 
         validateMoisture(request.getMoisturePercentage());
 
-        String registeredDevice = user.getDeviceNumber();
-        if (registeredDevice != null
-                && !registeredDevice.isBlank()
-                && !registeredDevice.equalsIgnoreCase(deviceNumber)) {
+        // Validate measuredAt timestamp if provided (prevent future timestamps > 5 mins or stale readings > 7 days)
+        java.time.LocalDateTime measuredAt = request.getMeasuredAt() != null
+                ? request.getMeasuredAt()
+                : java.time.LocalDateTime.now();
+        if (measuredAt.isAfter(java.time.LocalDateTime.now().plusMinutes(5))) {
+            throw new IllegalArgumentException("Reading timestamp cannot be in the future");
+        }
+        if (measuredAt.isBefore(java.time.LocalDateTime.now().minusDays(7))) {
+            throw new IllegalArgumentException("Reading timestamp is too stale (must be within last 7 days)");
+        }
+
+        // Duplicate reading detection if device measurement ID is provided
+        String measurementId = request.getDeviceMeasurementId() != null
+                ? request.getDeviceMeasurementId().trim()
+                : null;
+        if (measurementId != null && !measurementId.isBlank()) {
+            boolean isDuplicate = moistureReadingRepository.findByLotId(lotId).stream()
+                    .anyMatch(r -> measurementId.equalsIgnoreCase(r.getDeviceMeasurementId()));
+            if (isDuplicate) {
+                throw new IllegalArgumentException("Duplicate device measurement: reading ID " + measurementId + " already recorded for this lot");
+            }
+        }
+
+        // Source and verification status - ONLY device readings are permitted
+        String source = request.getSource() != null && !request.getSource().isBlank()
+                ? request.getSource().trim().toUpperCase()
+                : "";
+
+        if ("MANUAL".equalsIgnoreCase(source) || source.isBlank()) {
             throw new IllegalArgumentException(
-                    "Device number must match the authenticated farmer device"
+                    "Manual moisture readings are not allowed. Readings must be obtained via a connected moisture meter device."
             );
         }
+
+        // Client-reported device readings vs simulated
+        String verificationStatus = request.getVerificationStatus() != null && !request.getVerificationStatus().isBlank()
+                ? request.getVerificationStatus().trim().toUpperCase()
+                : ("MOCK".equalsIgnoreCase(source) ? "SIMULATED" : "DEVICE_REPORTED");
 
         MoistureReading reading = new MoistureReading();
         reading.setLot(lot);
         reading.setDeviceNumber(deviceNumber);
         reading.setMoisturePercentage(request.getMoisturePercentage());
+        reading.setMeasuredAt(measuredAt);
+        reading.setSource(source);
+        reading.setVerificationStatus(verificationStatus);
+        reading.setDeviceMeasurementId(measurementId);
+        reading.setRawPayload(request.getRawPayload());
 
         MoistureReading saved = moistureReadingRepository.save(reading);
 
@@ -137,7 +172,10 @@ public class MoistureReadingService {
                 reading.getLot().getId(),
                 reading.getDeviceNumber(),
                 reading.getMoisturePercentage(),
-                reading.getMeasuredAt()
+                reading.getMeasuredAt(),
+                reading.getSource(),
+                reading.getVerificationStatus(),
+                reading.getDeviceMeasurementId()
         );
     }
 }

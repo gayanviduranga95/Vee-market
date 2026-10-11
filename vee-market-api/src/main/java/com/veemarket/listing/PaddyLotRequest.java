@@ -26,6 +26,8 @@ public class PaddyLotRequest {
     @NotNull
     private LocalDate availableDate;
 
+    private com.veemarket.moisture.MoistureReadingRequest moistureReading;
+
     public Long getFarmId() {
         return farmId;
     }
@@ -72,5 +74,13 @@ public class PaddyLotRequest {
 
     public void setAvailableDate(LocalDate availableDate) {
         this.availableDate = availableDate;
+    }
+
+    public com.veemarket.moisture.MoistureReadingRequest getMoistureReading() {
+        return moistureReading;
+    }
+
+    public void setMoistureReading(com.veemarket.moisture.MoistureReadingRequest moistureReading) {
+        this.moistureReading = moistureReading;
     }
 }
