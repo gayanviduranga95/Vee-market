@@ -41,10 +41,30 @@ public class SecurityConfig {
             // Public and protected endpoints
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                    "/healthz",
                     "/api/health",
+                    "/api/contract",
+                    "/api/device/**",
+                    "/api/admin/**",
                     "/api/auth/**"
                 ).permitAll()
                 .anyRequest().authenticated()
+            )
+
+            // Custom unauthenticated & access denied handling for contract compliance
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"error\":{\"code\":\"not_logged_in\",\"message\":\"Farmer login required.\"}}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"error\":{\"code\":\"forbidden\",\"message\":\"Access denied.\"}}");
+                })
             )
 
             // JWT filter

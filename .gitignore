@@ -66,3 +66,8 @@ pnpm-debug.log*
 # ==============================
 .DS_Store
 Thumbs.db
+
+# ==============================
+# Hardware Team Reference Package
+# ==============================
+vee-market-server-for-software-team/

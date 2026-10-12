@@ -11,6 +11,7 @@ RUN chmod +x mvnw
 
 RUN ./mvnw clean package -DskipTests
 
+
 # =========================
 # Runtime stage
 # =========================
@@ -22,4 +23,4 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]

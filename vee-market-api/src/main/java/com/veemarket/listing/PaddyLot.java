@@ -37,6 +37,12 @@ public class PaddyLot {
     @Column(nullable = false, length = 30)
     private String status = "ACTIVE";
 
+    @Column(nullable = false)
+    private Boolean locked = false;
+
+    @Column(name = "lot_code", length = 100)
+    private String lotCode;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -113,6 +119,25 @@ public class PaddyLot {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Boolean getLocked() {
+        return locked != null && locked;
+    }
+
+    public void setLocked(Boolean locked) {
+        this.locked = locked;
+    }
+
+    public String getLotCode() {
+        if (lotCode != null && !lotCode.isBlank()) {
+            return lotCode;
+        }
+        return id != null ? "L" + id : "L0";
+    }
+
+    public void setLotCode(String lotCode) {
+        this.lotCode = lotCode;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -24,6 +24,20 @@ public class GlobalExceptionHandler {
     private static final Logger logger =
             LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(com.veemarket.device.DeviceContractException.class)
+    public ResponseEntity<java.util.Map<String, Object>> handleDeviceContractException(
+            com.veemarket.device.DeviceContractException ex) {
+
+        java.util.Map<String, Object> errorDetails = new java.util.LinkedHashMap<>();
+        errorDetails.put("code", ex.getCode());
+        errorDetails.put("message", ex.getMessage());
+
+        java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("error", errorDetails);
+
+        return ResponseEntity.status(ex.getStatus()).body(body);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException ex,

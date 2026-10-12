@@ -6,10 +6,13 @@ import { useParams, useRouter } from "next/navigation";
 
 import { useLanguage } from "../../../components/LanguageProvider";
 import VeeHeader from "../../../components/VeeHeader";
+import MoistureMeterModal, {
+  DeviceReadingResult,
+} from "../../../components/MoistureMeterModal";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://172.18.228.12:8080";
+  "http://localhost:8080";
 
 type Lot = {
   id: number;
@@ -152,7 +155,7 @@ export default function PaddyLotDetailsPage() {
             historyEmpty: "ඉතිහාසයක් නොමැත",
 
             trustStatus: "විශ්වසනීයත්ව තත්ත්වය",
-            deviceVerified: "උපාංග මගින් තහවුරු කළ තොගයක්",
+            deviceVerified: "උපාංග මිනුම (Device reading)",
             unverified: "තහවුරු කර නොමැත",
             unverifiedNotice:
               "මෙම තොගය සඳහා තවමත් තෙතමන මිනුමක් එකතු කර නොමැත.",
@@ -265,7 +268,7 @@ export default function PaddyLotDetailsPage() {
             historyEmpty: "No history records",
 
             trustStatus: "Trust Status",
-            deviceVerified: "Device Verified",
+            deviceVerified: "Device reading",
             unverified: "Unverified",
             unverifiedNotice:
               "This lot currently has no verified moisture measurements.",
@@ -595,6 +598,24 @@ export default function PaddyLotDetailsPage() {
     } finally {
       setMoistureSubmitting(false);
     }
+  }
+
+  function handleDeviceTestComplete(reading: DeviceReadingResult) {
+    const newReading: MoistureReading = {
+      id: Date.now(),
+      lotId: lotId,
+      deviceNumber: "Device reading",
+      moisturePercentage: reading.moisture_pct,
+      measuredAt: reading.received_at,
+    };
+    setMoisture((prev) => [newReading, ...prev]);
+    setShowMoistureModal(false);
+    setSuccessMessage(
+      isSinhala
+        ? "උපාංග තෙතමන මිනුම සාර්ථකව සටහන් විය (Device reading)!"
+        : "Moisture reading recorded successfully (Device reading)!"
+    );
+    setTimeout(() => setSuccessMessage(null), 5000);
   }
 
   // ==========================================================
@@ -1431,109 +1452,14 @@ export default function PaddyLotDetailsPage() {
           MODAL: ADD MOISTURE READING
       ====================================================== */}
       {showMoistureModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 sm:p-8">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-xl dark:bg-sky-950/40">
-                  💧
-                </span>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {text.addMoisture}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowMoistureModal(false)}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateMoisture} className="space-y-5">
-              {/* Device Number */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide dark:text-slate-300">
-                  {text.deviceNumber}
-                </label>
-                <input
-                  type="text"
-                  required
-                  maxLength={100}
-                  placeholder={
-                    farmerProfile?.deviceNumber || text.devicePlaceholder
-                  }
-                  value={moistureForm.deviceNumber}
-                  onChange={(e) =>
-                    setMoistureForm((curr) => ({
-                      ...curr,
-                      deviceNumber: e.target.value,
-                    }))
-                  }
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                />
-                <p className="mt-1 text-[11px] text-slate-400">
-                  {farmerProfile?.deviceNumber
-                    ? `${isSinhala ? "ලියාපදිංචි උපාංගය" : "Registered device"}: ${farmerProfile.deviceNumber}`
-                    : text.devicePlaceholder}
-                </p>
-              </div>
-
-              {/* Moisture Percentage */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide dark:text-slate-300">
-                  {text.moisturePercentage}
-                </label>
-                <div className="relative mt-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0.10"
-                    max="60.00"
-                    required
-                    placeholder={text.moisturePlaceholder}
-                    value={moistureForm.moisturePercentage}
-                    onChange={(e) =>
-                      setMoistureForm((curr) => ({
-                        ...curr,
-                        moisturePercentage: e.target.value,
-                      }))
-                    }
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-10 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  />
-                  <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-bold text-slate-400">
-                    %
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-slate-400">
-                  {text.moistureGuide}
-                </p>
-              </div>
-
-              {/* Action buttons */}
-              <div className="mt-6 flex items-center justify-end gap-3 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowMoistureModal(false)}
-                  className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  {text.cancel}
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={moistureSubmitting}
-                  className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {moistureSubmitting
-                    ? text.submittingMoisture
-                    : text.submitMoisture}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <MoistureMeterModal
+          isOpen={showMoistureModal}
+          onClose={() => setShowMoistureModal(false)}
+          lotId={lotId}
+          lotCode={lot ? `L${lot.id}` : undefined}
+          onTestComplete={handleDeviceTestComplete}
+          isSinhala={isSinhala}
+        />
       )}
 
       {/* ======================================================
