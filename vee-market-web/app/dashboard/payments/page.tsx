@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../components/LanguageProvider";
 import VeeHeader from "../../components/VeeHeader";
+import { Button, StatusBadge, EmptyState, ErrorBanner } from "../../components/ui/SharedUI";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://172.18.228.12:8080";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://172.18.228.12:8080";
 
 type Deal = {
   dealId: number;
@@ -21,7 +21,6 @@ type Deal = {
   paymentStatus: string;
   deliveryStatus: string;
   createdAt: string;
-  updatedAt: string;
 };
 
 export default function PaymentsPage() {
@@ -31,83 +30,67 @@ export default function PaymentsPage() {
 
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
-  const t = {
-    title: isSinhala ? "ගෙවීම් සහ මුදල් ලැබීම්" : "Payments & Escrow Ledger",
-    subtitle: isSinhala
-      ? "ඔබගේ වී අලෙවි ගනුදෙනු වලින් ලැබුණු සහ පොරොත්තු ගෙවීම් වාර්තා."
-      : "Financial tracking, settled revenue, and pending payments from verified mill deals.",
-    back: isSinhala ? "← පුවරුව වෙත" : "← Back to Dashboard",
-    metrics: {
-      totalRevenue: isSinhala ? "මුළු ගනුදෙනු වටිනාකම" : "Gross Contract Value",
-      settled: isSinhala ? "ලැබුණු ගෙවීම්" : "Settled Payments",
-      pending: isSinhala ? "ලැබීමට ඇති මුදල්" : "Pending Settlements",
-    },
-    table: {
+  const t = useMemo(
+    () => ({
+      title: isSinhala ? "ගෙවීම් සහ මුදල් ලැබීම්" : "Payments & Ledger",
+      subtitle: isSinhala
+        ? "ඔබගේ වී අලෙවි ගනුදෙනු වලින් ලැබුණු සහ පොරොත්තු ගෙවීම් වාර්තා."
+        : "Financial tracking and payment confirmations from verified buyer deals.",
+      back: isSinhala ? "← පුවරුව වෙත" : "← Back to Dashboard",
       deal: isSinhala ? "ගනුදෙනුව" : "Deal",
-      lot: isSinhala ? "වී තොගය" : "Paddy Lot",
       buyer: isSinhala ? "ගැනුම්කරු" : "Buyer",
-      quantity: isSinhala ? "ප්‍රමාණය" : "Volume",
       unitPrice: isSinhala ? "ඒකක මිල" : "Unit Price",
-      totalAmount: isSinhala ? "මුළු මුදල" : "Total Amount",
-      status: isSinhala ? "ගෙවීම් තත්ත්වය" : "Status",
-      action: isSinhala ? "ක්‍රියාව" : "Action",
-      markPaid: isSinhala ? "ගෙවීම සලකුණු කරන්න" : "Confirm Received",
-    },
-    empty: isSinhala
-      ? "තවමත් ගෙවීම් වාර්තා නොමැත."
-      : "No payment records found yet.",
-    emptyDesc: isSinhala
-      ? "මෝල් වෙතින් වී තොග සඳහා ලංසු පිළිගත් පසු ගෙවීම් මෙහි දිස්වනු ඇත."
-      : "Payments from accepted buyer lots will appear here.",
-    loadingText: isSinhala ? "ගෙවීම් දත්ත පූරණය වෙමින්..." : "Loading payments...",
-    errorText: isSinhala ? "ගෙවීම් ලබාගැනීමට නොහැකි විය." : "Failed to load payment records.",
-    refresh: isSinhala ? "යාවත්කාලීන කරන්න" : "Refresh",
-  };
-
-  function authHeaders() {
-    const token =
-      localStorage.getItem("vee-market-token") || localStorage.getItem("token");
-    return token
-      ? {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        }
-      : null;
-  }
+      volume: isSinhala ? "ප්‍රමාණය" : "Volume",
+      grossTotal: isSinhala ? "මුළු මුදල" : "Total Amount",
+      paymentStatus: isSinhala ? "ගෙවීම් තත්ත්වය" : "Payment Status",
+      markPaid: isSinhala ? "මුදල් ලැබුණු බව සලකුණු කරන්න" : "Confirm Payment Received",
+      emptyTitle: isSinhala ? "තවමත් ගෙවීම් වාර්තා නොමැත" : "No Payment Records Yet",
+      emptyDesc: isSinhala
+        ? "මෝල් වෙතින් වී තොග සඳහා ලංසු පිළිගත් පසු ගෙවීම් මෙහි දිස්වනු ඇත."
+        : "Settlements from accepted buyer lots will appear here.",
+      loadingText: isSinhala ? "ගෙවීම් දත්ත ලබාගනිමින්..." : "Loading payments...",
+      errorText: isSinhala ? "ගෙවීම් ලබාගැනීමට නොහැකි විය." : "Failed to load payment records.",
+    }),
+    [isSinhala]
+  );
 
   async function loadPayments() {
-    const headers = authHeaders();
-    if (!headers) {
+    const token =
+      localStorage.getItem("vee-market-token") || localStorage.getItem("token");
+
+    if (!token) {
       router.replace("/login");
       return;
     }
 
     try {
       setLoading(true);
-      setError("");
-      const response = await fetch(`${API_URL}/api/farmer/deals`, {
-        headers,
+      setError(null);
+
+      const res = await fetch(`${API_URL}/api/farmer/deals`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
         cache: "no-store",
       });
 
-      if (response.status === 401 || response.status === 403) {
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("vee-market-token");
+        localStorage.removeItem("token");
         router.replace("/login");
         return;
       }
 
-      if (!response.ok) {
-        throw new Error(
-          (await response.json().catch(() => null))?.message || t.errorText
-        );
-      }
+      if (!res.ok) throw new Error(t.errorText);
 
-      setDeals(await response.json());
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t.errorText);
+      const data = await res.json();
+      setDeals(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.errorText);
     } finally {
       setLoading(false);
     }
@@ -115,221 +98,129 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     loadPayments();
-  }, []);
+  }, [router]);
 
   async function handleMarkPaid(dealId: number) {
-    const headers = authHeaders();
-    if (!headers) return;
+    const token =
+      localStorage.getItem("vee-market-token") || localStorage.getItem("token");
+    if (!token) return;
 
     try {
       setUpdatingId(dealId);
       const res = await fetch(`${API_URL}/api/farmer/deals/${dealId}/payment`, {
         method: "POST",
-        headers,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ status: "PAID" }),
       });
 
-      if (!res.ok) {
-        throw new Error(
-          (await res.json().catch(() => null))?.message ||
-            (isSinhala
-              ? "ගෙවීම් තත්ත්වය යාවත්කාලීන කිරීමට නොහැකි විය."
-              : "Failed to update payment status.")
-        );
-      }
+      if (!res.ok) throw new Error("Could not update payment");
 
       const updated = (await res.json()) as Deal;
       setDeals((prev) => prev.map((d) => (d.dealId === updated.dealId ? updated : d)));
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.errorText);
+      setError(err instanceof Error ? err.message : "Error updating payment");
     } finally {
       setUpdatingId(null);
     }
   }
 
-  // Financial aggregates
-  const totalRevenue = useMemo(() => {
-    return deals.reduce(
-      (acc, d) => acc + Number(d.quantityKg || 0) * Number(d.agreedPricePerKg || 0),
-      0
-    );
-  }, [deals]);
-
-  const settledRevenue = useMemo(() => {
-    return deals
-      .filter((d) => d.paymentStatus === "PAID")
-      .reduce(
-        (acc, d) => acc + Number(d.quantityKg || 0) * Number(d.agreedPricePerKg || 0),
-        0
-      );
-  }, [deals]);
-
-  const pendingRevenue = useMemo(() => {
-    return totalRevenue - settledRevenue;
-  }, [totalRevenue, settledRevenue]);
-
   return (
-    <main className="min-h-screen bg-[#f4f7f3] text-slate-900 dark:bg-slate-950 dark:text-white">
+    <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
       <VeeHeader roleBadge={isSinhala ? "ගෙවීම්" : "Payments"} roleType="FARMER" />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10 space-y-8">
-        <div className="flex items-center justify-between">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 space-y-6">
+        <div>
           <Link
             href="/dashboard"
-            className="text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
+            className="text-xs font-bold text-emerald-700 hover:underline dark:text-emerald-400"
           >
             {t.back}
           </Link>
-          <button
-            onClick={loadPayments}
-            disabled={loading}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <span>🔄</span>
-            <span>{t.refresh}</span>
-          </button>
-        </div>
-
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
             {t.title}
           </h1>
-          <p className="mt-1 text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+          <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             {t.subtitle}
           </p>
         </div>
 
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 flex items-center gap-3">
-            <span>⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <ErrorBanner message={error} onRetry={loadPayments} />}
 
-        {/* METRIC CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              {t.metrics.totalRevenue}
-            </p>
-            <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              LKR {totalRevenue.toLocaleString()}
-            </p>
-            <p className="mt-1 text-xs text-slate-400">
-              {deals.length} {isSinhala ? "ගනුදෙනු" : "deals"}
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-6 shadow-sm dark:border-emerald-950 dark:bg-emerald-950/20">
-            <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-400 flex items-center gap-1">
-              <span>💳</span> {t.metrics.settled}
-            </p>
-            <p className="mt-2 text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-300">
-              LKR {settledRevenue.toLocaleString()}
-            </p>
-            <p className="mt-1 text-xs text-emerald-600/80 dark:text-emerald-400/80">
-              {deals.filter((d) => d.paymentStatus === "PAID").length}{" "}
-              {isSinhala ? "සම්පූර්ණයි" : "settled"}
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-amber-100 bg-amber-50/70 p-6 shadow-sm dark:border-amber-950 dark:bg-amber-950/20">
-            <p className="text-xs font-semibold text-amber-800 dark:text-amber-400 flex items-center gap-1">
-              <span>⏳</span> {t.metrics.pending}
-            </p>
-            <p className="mt-2 text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-300">
-              LKR {pendingRevenue.toLocaleString()}
-            </p>
-            <p className="mt-1 text-xs text-amber-600/80 dark:text-amber-400/80">
-              {deals.filter((d) => d.paymentStatus !== "PAID").length}{" "}
-              {isSinhala ? "පොරොත්තුවෙන්" : "in progress"}
-            </p>
-          </div>
-        </div>
-
-        {/* TRANSACTIONS LIST */}
         {loading ? (
-          <div className="p-12 text-center text-slate-500 dark:text-slate-400">
+          <div className="py-16 text-center text-sm text-slate-500 dark:text-slate-400">
             <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent mb-3" />
-            <p className="font-semibold text-sm">{t.loadingText}</p>
+            <p className="font-semibold">{t.loadingText}</p>
           </div>
         ) : deals.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-            <span className="text-4xl">💰</span>
-            <p className="mt-3 text-lg font-bold text-slate-800 dark:text-slate-200">
-              {t.empty}
-            </p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-              {t.emptyDesc}
-            </p>
-          </div>
+          <EmptyState
+            title={t.emptyTitle}
+            description={t.emptyDesc}
+            icon="💳"
+          />
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {deals.map((deal) => {
-              const totalAmount = deal.quantityKg * deal.agreedPricePerKg;
-              const isPaid = deal.paymentStatus === "PAID";
-              const isUpdating = updatingId === deal.dealId;
+              const totalVal = (deal.agreedPricePerKg || 0) * (deal.quantityKg || 0);
 
               return (
-                <div
+                <article
                   key={deal.dealId}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                  className="flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-xl font-bold dark:bg-slate-800">
-                      🌾
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-400">
-                          DEAL #{deal.dealId}
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                          {t.deal} #{deal.dealId}
                         </span>
-                        <span className="text-xs text-slate-400">•</span>
-                        <Link
-                          href={`/dashboard/listings/${deal.lotId}`}
-                          className="text-xs font-bold text-emerald-600 hover:underline dark:text-emerald-400"
-                        >
-                          LOT #{deal.lotId}
-                        </Link>
+                        <h2 className="mt-0.5 text-lg font-extrabold text-slate-900 dark:text-white">
+                          {t.buyer} #{deal.millUserId}
+                        </h2>
                       </div>
-                      <p className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
-                        {Number(deal.quantityKg).toLocaleString()} kg @ LKR{" "}
-                        {Number(deal.agreedPricePerKg).toFixed(2)}/kg
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Mill Buyer #{deal.millUserId}
-                      </p>
+                      <StatusBadge status={deal.paymentStatus || "PENDING"} size="md" />
                     </div>
-                  </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-5 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0">
-                    <div className="text-right">
-                      <p className="text-lg font-black text-slate-900 dark:text-white">
-                        LKR {totalAmount.toLocaleString()}
-                      </p>
-                      <span
-                        className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                          isPaid
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                            : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                        }`}
-                      >
-                        {deal.paymentStatus || "UNPAID"}
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-50 p-3.5 dark:bg-slate-950/60">
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-400">{t.unitPrice}</p>
+                        <p className="mt-0.5 text-base font-extrabold text-emerald-700 dark:text-emerald-400">
+                          LKR {deal.agreedPricePerKg}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-400">{t.volume}</p>
+                        <p className="mt-0.5 text-base font-extrabold text-slate-900 dark:text-white">
+                          {deal.quantityKg?.toLocaleString()} kg
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{t.grossTotal}:</span>
+                      <span className="text-lg font-black text-slate-900 dark:text-white">
+                        LKR {totalVal.toLocaleString()}
                       </span>
                     </div>
-
-                    {!isPaid && (
-                      <button
-                        type="button"
-                        disabled={isUpdating}
-                        onClick={() => handleMarkPaid(deal.dealId)}
-                        className="rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
-                      >
-                        ✓ {t.table.markPaid}
-                      </button>
-                    )}
                   </div>
-                </div>
+
+                  {deal.paymentStatus !== "PAID" && (
+                    <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
+                      <Button
+                        onClick={() => handleMarkPaid(deal.dealId)}
+                        variant="secondary"
+                        size="md"
+                        fullWidth
+                        loading={updatingId === deal.dealId}
+                        className="font-bold"
+                      >
+                        ✓ {t.markPaid}
+                      </Button>
+                    </div>
+                  )}
+                </article>
               );
             })}
           </div>

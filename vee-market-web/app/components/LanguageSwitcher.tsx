@@ -19,6 +19,8 @@ export default function LanguageSwitcher() {
         border-slate-200
         bg-slate-50
         p-1
+        dark:border-slate-700
+        dark:bg-slate-800
       "
     >
       <button
@@ -29,18 +31,15 @@ export default function LanguageSwitcher() {
         className={`
           rounded-full
           px-3
-          py-2
+          py-1.5
           text-xs
-          font-medium
+          font-bold
           transition
-
-          sm:px-4
-          sm:text-sm
-
+          sm:px-3.5
           ${
             language === "si"
-              ? "bg-[#087f3f] text-white shadow-sm"
-              : "text-slate-600 hover:bg-white"
+              ? "bg-[#087f3f] text-white shadow-sm dark:bg-emerald-600"
+              : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
           }
         `}
       >
@@ -55,18 +54,15 @@ export default function LanguageSwitcher() {
         className={`
           rounded-full
           px-3
-          py-2
+          py-1.5
           text-xs
-          font-medium
+          font-bold
           transition
-
-          sm:px-4
-          sm:text-sm
-
+          sm:px-3.5
           ${
             language === "en"
-              ? "bg-[#087f3f] text-white shadow-sm"
-              : "text-slate-600 hover:bg-white"
+              ? "bg-[#087f3f] text-white shadow-sm dark:bg-emerald-600"
+              : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
           }
         `}
       >

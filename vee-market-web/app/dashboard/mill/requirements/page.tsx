@@ -1,15 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import LanguageSwitcher from "../../../components/LanguageSwitcher";
-import ThemeSwitcher from "../../../components/ThemeSwitcher";
 import { useLanguage } from "../../../components/LanguageProvider";
 import VeeHeader from "../../../components/VeeHeader";
+import { Button, StatusBadge, EmptyState, ErrorBanner } from "../../../components/ui/SharedUI";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://172.18.228.12:8080";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://172.18.228.12:8080";
 
 type Requirement = {
   id: number;
@@ -34,37 +32,32 @@ export default function MillRequirementsPage() {
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [myOffers, setMyOffers] = useState<MillOffer[]>([]);
   const [prices, setPrices] = useState<Record<number, string>>({});
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const t = {
-    title: isSinhala
-      ? "සාප්පු සහ හෝටල් සහල් ඉල්ලුම්"
-      : "Shop & Hotel Rice Demands",
-    subtitle: isSinhala
-      ? "වෙළඳසැල් සහ හෝටල් විසින් ඉදිරිපත් කර ඇති තොග සහල් අවශ්‍යතා සඳහා ඔබේ මිල ගණන් ඉදිරිපත් කරන්න."
-      : "Submit competitive wholesale quotes for bulk rice requirements posted by shops and hotels.",
-    back: isSinhala ? "← මෝල් පුවරුව" : "← Back to Mill Dashboard",
-    priceLabel: isSinhala ? "ඔබේ මිල / කිලෝග්‍රෑම් (LKR)" : "Your Quote / kg (LKR)",
-    pricePlaceholder: "e.g. 215.00",
-    submitOffer: isSinhala ? "මිල ගණන ඉදිරිපත් කරන්න" : "Submit Price Quote",
-    submitting: isSinhala ? "ඉදිරිපත් කරමින්..." : "Submitting...",
-    empty: isSinhala
-      ? "දැනට සක්‍රීය ව්‍යාපාර සහල් අවශ්‍යතා නොමැත."
-      : "No active commercial rice requirements found.",
-    loadingText: isSinhala ? "අවශ්‍යතා ලබාගනිමින්..." : "Loading requirements...",
-    errorText: isSinhala
-      ? "අවශ්‍යතා ලබාගැනීමට නොහැකි විය."
-      : "Unable to load business requirements.",
-    myOffersTitle: isSinhala ? "ඔබ ඉදිරිපත් කළ මිල ගණන්" : "My Submitted Quotes",
-    status: {
-      PENDING: isSinhala ? "පොරොත්තුවෙන්" : "Pending Decision",
-      ACCEPTED: isSinhala ? "පිළිගත් (Accepted!)" : "Accepted!",
-      REJECTED: isSinhala ? "ප්‍රතික්ෂේපිත" : "Declined",
-    },
-  };
+  const t = useMemo(
+    () => ({
+      title: isSinhala
+        ? "සාප්පු සහ හෝටල් සහල් ඉල්ලුම්"
+        : "Wholesale Buyer Requirements",
+      subtitle: isSinhala
+        ? "වෙළඳසැල් සහ හෝටල් විසින් ඉදිරිපත් කර ඇති තොග සහල් අවශ්‍යතා සඳහා ඔබේ මෝලේ මිල ගණන් ඉදිරිපත් කරන්න."
+        : "Submit direct wholesale price quotes for bulk rice demands posted by verified shops and restaurants.",
+      back: isSinhala ? "← මෝල් පුවරුව වෙත" : "← Back to Mill Dashboard",
+      quotePrice: isSinhala ? "ඔබේ මිල / kg (LKR)" : "Quote / kg (LKR)",
+      submitQuote: isSinhala ? "මිල ගණන ඉදිරිපත් කරන්න" : "Submit Quote",
+      emptyTitle: isSinhala ? "දැනට සහල් අවශ්‍යතා නොමැත" : "No Active Demands Found",
+      emptyDesc: isSinhala
+        ? "සාප්පු හෝ හෝටල් විසින් නව සහල් අවශ්‍යතා පළ කළ පසු මෙහි දිස්වනු ඇත."
+        : "Commercial buyers haven't posted any bulk demands yet.",
+      myQuotesTitle: isSinhala ? "මා ඉදිරිපත් කළ මිල ගණන්" : "My Submitted Quotes",
+      loadingText: isSinhala ? "අවශ්‍යතා ලබාගනිමින්..." : "Loading requirements...",
+      errorText: isSinhala ? "අවශ්‍යතා ලබාගැනීමට නොහැකි විය." : "Failed to load requirements.",
+    }),
+    [isSinhala]
+  );
 
   function authHeaders() {
     const token =
@@ -87,13 +80,10 @@ export default function MillRequirementsPage() {
 
     try {
       setLoading(true);
-      setError("");
+      setError(null);
 
       const [reqRes, offersRes] = await Promise.all([
-        fetch(`${API_URL}/api/mill/requirements`, {
-          headers,
-          cache: "no-store",
-        }),
+        fetch(`${API_URL}/api/mill/requirements`, { headers, cache: "no-store" }),
         fetch(`${API_URL}/api/mill/requirements/offers`, {
           headers,
           cache: "no-store",
@@ -101,18 +91,16 @@ export default function MillRequirementsPage() {
       ]);
 
       if (reqRes.status === 401 || reqRes.status === 403) {
+        localStorage.removeItem("vee-market-token");
+        localStorage.removeItem("token");
         router.replace("/login");
         return;
       }
 
-      if (reqRes.ok) {
-        setRequirements(await reqRes.json());
-      }
-      if (offersRes.ok) {
-        setMyOffers(await offersRes.json());
-      }
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t.errorText);
+      if (reqRes.ok) setRequirements(await reqRes.json());
+      if (offersRes.ok) setMyOffers(await offersRes.json());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.errorText);
     } finally {
       setLoading(false);
     }
@@ -120,30 +108,23 @@ export default function MillRequirementsPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [router]);
 
-  async function handleSubmitOffer(
-    event: FormEvent<HTMLFormElement>,
-    requirementId: number
-  ) {
-    event.preventDefault();
+  async function handleSubmitOffer(requirementId: number) {
     const headers = authHeaders();
     if (!headers) return;
 
     const price = prices[requirementId];
     if (!price || Number(price) <= 0) {
-      setError(
-        isSinhala
-          ? "කරුණාකර වලංගු මිලක් ඇතුළත් කරන්න."
-          : "Please enter a valid price."
-      );
+      setError(isSinhala ? "කරුණාකර වලංගු මිලක් ඇතුළත් කරන්න." : "Please enter a valid price.");
       return;
     }
 
     try {
       setSavingId(requirementId);
-      setError("");
-      const response = await fetch(
+      setError(null);
+
+      const res = await fetch(
         `${API_URL}/api/mill/requirements/${requirementId}/offers`,
         {
           method: "POST",
@@ -152,183 +133,112 @@ export default function MillRequirementsPage() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(
-          (await response.json().catch(() => null))?.message ||
-            (isSinhala
-              ? "මිල ගණන ඉදිරිපත් කිරීමට නොහැකි විය."
-              : "Failed to submit quote.")
-        );
-      }
+      if (!res.ok) throw new Error("Could not submit offer");
 
-      const created = (await response.json()) as MillOffer;
+      const created = (await res.json()) as MillOffer;
       setMyOffers((prev) => [created, ...prev]);
       setPrices((prev) => ({ ...prev, [requirementId]: "" }));
-      setNotification(
-        isSinhala
-          ? `අවශ්‍යතා #${requirementId} සඳහා LKR ${created.pricePerKg}/kg මිල ගණන සාර්ථකව ඉදිරිපත් කරන ලදී!`
-          : `Quote of LKR ${created.pricePerKg}/kg submitted successfully for requirement #${requirementId}!`
-      );
-      setTimeout(() => setNotification(null), 4000);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t.errorText);
+      setNotification(isSinhala ? "මිල ගණන සාර්ථකව ඉදිරිපත් කරන ලදී!" : "Quote submitted!");
+      setTimeout(() => setNotification(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error submitting quote");
     } finally {
       setSavingId(null);
     }
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f7f3] text-slate-800 dark:bg-slate-950 dark:text-white">
-      {/* SHARED BRAND HEADER */}
-      <VeeHeader roleBadge="Mill" roleType="MILL" />
+    <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">
+      <VeeHeader roleBadge={isSinhala ? "ව්‍යාපාරික ඉල්ලුම්" : "Buyer Demands"} roleType="MILL" />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10 space-y-8">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 space-y-6">
         <div>
           <Link
             href="/dashboard/mill"
-            className="text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
+            className="text-xs font-bold text-emerald-700 hover:underline dark:text-emerald-400"
           >
             {t.back}
           </Link>
-          <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
             {t.title}
           </h1>
-          <p className="mt-1 text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+          <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             {t.subtitle}
           </p>
         </div>
 
-        {/* NOTIFICATION */}
+        {error && <ErrorBanner message={error} onRetry={loadData} />}
+
         {notification && (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300 flex items-center gap-3">
-            <span>🎉</span>
-            <span>{notification}</span>
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+            ✓ {notification}
           </div>
         )}
 
-        {/* ERROR */}
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 flex items-center gap-3">
-            <span>⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* ACTIVE DEMANDS GRID */}
         {loading ? (
-          <div className="p-12 text-center text-slate-500 dark:text-slate-400">
-            <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-amber-600 border-t-transparent mb-3" />
-            <p className="font-semibold text-sm">{t.loadingText}</p>
+          <div className="py-16 text-center text-sm text-slate-500 dark:text-slate-400">
+            <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent mb-3" />
+            <p className="font-semibold">{t.loadingText}</p>
           </div>
         ) : requirements.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-            <span className="text-4xl">🏪</span>
-            <p className="mt-3 text-lg font-bold text-slate-800 dark:text-slate-200">
-              {t.empty}
-            </p>
-          </div>
+          <EmptyState
+            title={t.emptyTitle}
+            description={t.emptyDesc}
+            icon="🏪"
+          />
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {requirements.map((req) => {
-              const myExistingOffer = myOffers.find(
-                (o) => o.requirementId === req.id
-              );
-              const isSubmitting = savingId === req.id;
-
-              return (
-                <article
-                  key={req.id}
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4"
-                >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {requirements.map((req) => (
+              <article
+                key={req.id}
+                className="flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4"
+              >
+                <div>
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-2xl dark:bg-amber-950/50">
-                        🌾
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 uppercase">
-                          Demand #{req.id}
-                        </span>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                          {req.riceType}
-                        </h2>
-                      </div>
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                        Requirement #{req.id}
+                      </span>
+                      <h2 className="mt-0.5 text-lg font-extrabold text-slate-900 dark:text-white">
+                        {req.riceType}
+                      </h2>
                     </div>
-
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                       {req.frequency}
                     </span>
                   </div>
 
-                  <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950/60">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Volume Required:
-                    </p>
-                    <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">
-                      {Number(req.quantityKg).toLocaleString()} kg
-                    </p>
-                  </div>
+                  <p className="mt-3 text-base font-extrabold text-slate-800 dark:text-slate-200">
+                    {req.quantityKg.toLocaleString()} kg
+                  </p>
+                </div>
 
-                  {myExistingOffer ? (
-                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                            Your Quote:
-                          </p>
-                          <p className="text-lg font-black text-emerald-900 dark:text-emerald-200">
-                            LKR {Number(myExistingOffer.pricePerKg).toFixed(2)}/kg
-                          </p>
-                        </div>
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                            myExistingOffer.status === "ACCEPTED"
-                              ? "bg-emerald-600 text-white"
-                              : myExistingOffer.status === "REJECTED"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                          }`}
-                        >
-                          {t.status[myExistingOffer.status]}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <form
-                      onSubmit={(e) => handleSubmitOffer(e, req.id)}
-                      className="border-t border-slate-100 pt-4 dark:border-slate-800 space-y-3"
+                <div className="border-t border-slate-100 pt-3 dark:border-slate-800 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="1"
+                      placeholder="e.g. 215.00"
+                      value={prices[req.id] || ""}
+                      onChange={(e) =>
+                        setPrices({ ...prices, [req.id]: e.target.value })
+                      }
+                      className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-semibold dark:border-slate-700 dark:bg-slate-950"
+                    />
+                    <Button
+                      onClick={() => handleSubmitOffer(req.id)}
+                      variant="primary"
+                      size="md"
+                      loading={savingId === req.id}
+                      className="font-bold shrink-0"
                     >
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        {t.priceLabel}
-                        <input
-                          required
-                          min="1"
-                          step="0.01"
-                          type="number"
-                          value={prices[req.id] || ""}
-                          onChange={(e) =>
-                            setPrices((prev) => ({
-                              ...prev,
-                              [req.id]: e.target.value,
-                            }))
-                          }
-                          placeholder={t.pricePlaceholder}
-                          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-normal text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                        />
-                      </label>
-
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full rounded-xl bg-[#087f3f] py-3 px-4 text-xs font-bold text-white shadow-md hover:bg-[#076f37] transition disabled:opacity-50"
-                      >
-                        {isSubmitting ? t.submitting : t.submitOffer}
-                      </button>
-                    </form>
-                  )}
-                </article>
-              );
-            })}
+                      {t.submitQuote}
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         )}
       </div>

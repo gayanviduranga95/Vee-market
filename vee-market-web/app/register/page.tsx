@@ -10,7 +10,7 @@ import ThemeSwitcher from "../components/ThemeSwitcher";
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://172.18.228.12:8080";
 
-type RoleType = "FARMER" | "MILL" | "SHOP" | "HOTEL";
+type RoleType = "FARMER" | "MILL" | "BUSINESS";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -36,15 +36,11 @@ export default function RegisterPage() {
   const [millRegNo, setMillRegNo] = useState("");
   const [millingCapacity, setMillingCapacity] = useState("2000");
 
-  // Shop
-  const [shopName, setShopName] = useState("");
-  const [shopLocation, setShopLocation] = useState("");
-  const [shopRegNo, setShopRegNo] = useState("");
-
-  // Hotel
-  const [hotelName, setHotelName] = useState("");
-  const [hotelLocation, setHotelLocation] = useState("");
-  const [hotelCategory, setHotelCategory] = useState("Restaurant & Catering");
+  // Unified Business (Shop / Hotel / Commercial Buyer)
+  const [businessType, setBusinessType] = useState<"SHOP" | "HOTEL">("SHOP");
+  const [businessName, setBusinessName] = useState("");
+  const [businessLocation, setBusinessLocation] = useState("");
+  const [businessRegNo, setBusinessRegNo] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -81,15 +77,10 @@ export default function RegisterPage() {
         desc: isSinhala ? "වී මිලදී ගෙන සහල් සපයන්න" : "Procure & mill rice",
         badge: "🏭",
       },
-      SHOP: {
-        title: isSinhala ? "වෙළඳසැල" : "Shop / Retail",
-        desc: isSinhala ? "තොග සහල් ඇණවුම් කරන්න" : "Wholesale rice buyer",
+      BUSINESS: {
+        title: isSinhala ? "ව්‍යාපාරික ගැනුම්කරු" : "Business / Buyer",
+        desc: isSinhala ? "හෝටල්, වෙළඳසැල් හා තොග ගැනුම්කරුවන්" : "Hotels, shops & wholesale buyers",
         badge: "🏪",
-      },
-      HOTEL: {
-        title: isSinhala ? "හෝටලය" : "Hotel / Dining",
-        desc: isSinhala ? "තොග සහල් සපයා ගන්න" : "Commercial dining buyer",
-        badge: "🏨",
       },
     },
 
@@ -98,7 +89,7 @@ export default function RegisterPage() {
       namePlaceholder: isSinhala ? "ඔබගේ සම්පූර්ණ නම" : "Enter your full name",
       phone: isSinhala ? "දුරකථන අංකය" : "Phone Number",
       phonePlaceholder: "07XXXXXXXX",
-      email: isSinhala ? "විද්‍යුත් තැපැල් ලිපිනය" : "Email Address",
+      email: isSinhala ? "විද්‍යුත් තැපෑල ලිපිනය" : "Email Address",
       emailPlaceholder: "example@gmail.com",
       password: isSinhala ? "මුරපදය" : "Password",
       passwordPlaceholder: isSinhala ? "මුරපදයක් ඇතුළත් කරන්න" : "Create a password",
@@ -126,21 +117,16 @@ export default function RegisterPage() {
       capacity: isSinhala ? "දිනක ඇඹරුම් ධාරිතාව (kg)" : "Daily Milling Capacity (kg)",
     },
 
-    shopFields: {
-      name: isSinhala ? "වෙළඳසැලේ නම" : "Shop / Store Name",
-      namePlaceholder: isSinhala ? "උදා: ලංකා තොග සහල්" : "e.g. Lanka Wholesale Traders",
-      location: isSinhala ? "නගරය / ස්ථානය" : "Shop City / Address",
+    businessFields: {
+      type: isSinhala ? "ව්‍යාපාර වර්ගය" : "Business Category",
+      shopOption: isSinhala ? "🏪 තොග හෝ සිල්ලර වෙළඳසැල (Shop)" : "🏪 Wholesale or Retail Shop",
+      hotelOption: isSinhala ? "🏨 හෝටලය හෝ අවන්හල (Hotel / Restaurant)" : "🏨 Hotel or Restaurant",
+      name: isSinhala ? "ව්‍යාපාරයේ නම" : "Business Name",
+      namePlaceholder: isSinhala ? "උදා: ලංකා තොග වෙළඳුන් / ග්‍රෑන්ඩ් හොටෙල්" : "e.g. Lanka Wholesale Traders / Grand Hotel",
+      location: isSinhala ? "ව්‍යාපාර ස්ථානය / නගරය" : "Business Location / City",
       locationPlaceholder: isSinhala ? "උදා: පිටකොටුව, කොළඹ" : "e.g. Pettah, Colombo",
-      regNo: isSinhala ? "ව්‍යාපාර ලියාපදිංචි අංකය" : "Business Reg No (Optional)",
+      regNo: isSinhala ? "ව්‍යාපාර ලියාපදිංචි අංකය (විකල්ප)" : "Business Reg No (Optional)",
       regNoPlaceholder: "e.g. PV-12345",
-    },
-
-    hotelFields: {
-      name: isSinhala ? "හෝටලයේ / අවන්හලේ නම" : "Hotel / Restaurant Name",
-      namePlaceholder: isSinhala ? "උදා: ග්‍රෑන්ඩ් හොටෙල්" : "e.g. Grand Cinnamon Resort",
-      location: isSinhala ? "නගරය / ලිපිනය" : "City / Location",
-      locationPlaceholder: isSinhala ? "උදා: කොළඹ 03" : "e.g. Colombo 03",
-      category: isSinhala ? "ආයතන වර්ගය" : "Establishment Type",
     },
 
     submit: isSinhala ? "ගිණුම සාදන්න" : "Create Account",
@@ -183,12 +169,8 @@ export default function RegisterPage() {
       setError(isSinhala ? "සහල් මෝලේ නම ඇතුළත් කරන්න." : "Please enter rice mill name.");
       return;
     }
-    if (role === "SHOP" && !shopName.trim()) {
-      setError(isSinhala ? "වෙළඳසැලේ නම ඇතුළත් කරන්න." : "Please enter shop name.");
-      return;
-    }
-    if (role === "HOTEL" && !hotelName.trim()) {
-      setError(isSinhala ? "හෝටලයේ නම ඇතුළත් කරන්න." : "Please enter hotel name.");
+    if (role === "BUSINESS" && !businessName.trim()) {
+      setError(isSinhala ? "ව්‍යාපාරයේ නම ඇතුළත් කරන්න." : "Please enter business name.");
       return;
     }
 
@@ -216,23 +198,14 @@ export default function RegisterPage() {
           businessLocation: millLocation.trim() || null,
           deviceNumber: millRegNo.trim() || null,
         };
-      } else if (role === "SHOP") {
+      } else if (role === "BUSINESS") {
         payload = {
           ...payload,
           role: "BUYER",
-          businessType: "SHOP",
-          businessName: shopName.trim(),
-          businessLocation: shopLocation.trim() || null,
-          deviceNumber: shopRegNo.trim() || null,
-        };
-      } else if (role === "HOTEL") {
-        payload = {
-          ...payload,
-          role: "BUYER",
-          businessType: "HOTEL",
-          businessName: hotelName.trim(),
-          businessLocation: hotelLocation.trim() || null,
-          deviceNumber: hotelCategory.trim() || null,
+          businessType: businessType, // "SHOP" or "HOTEL"
+          businessName: businessName.trim(),
+          businessLocation: businessLocation.trim() || null,
+          deviceNumber: businessRegNo.trim() || null,
         };
       }
 
@@ -364,8 +337,8 @@ export default function RegisterPage() {
 
               {/* STEP 1: ROLE SELECTOR CARDS */}
               <div className="mb-6">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {(["FARMER", "MILL", "SHOP", "HOTEL"] as RoleType[]).map((r) => {
+                <div className="grid grid-cols-3 gap-2">
+                  {(["FARMER", "MILL", "BUSINESS"] as RoleType[]).map((r) => {
                     const roleMeta = t.roles[r];
                     const isSelected = role === r;
 
@@ -467,64 +440,60 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {role === "SHOP" && (
+                {role === "BUSINESS" && (
                   <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.shopFields.name} *
+                        {t.businessFields.type} *
                       </label>
-                      <input
-                        type="text"
-                        required
-                        value={shopName}
-                        onChange={(e) => setShopName(e.target.value)}
-                        placeholder={t.shopFields.namePlaceholder}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
+                      <select
+                        value={businessType}
+                        onChange={(e) => setBusinessType(e.target.value as "SHOP" | "HOTEL")}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      >
+                        <option value="SHOP">{t.businessFields.shopOption}</option>
+                        <option value="HOTEL">{t.businessFields.hotelOption}</option>
+                      </select>
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.shopFields.location} *
+                        {t.businessFields.name} *
                       </label>
                       <input
                         type="text"
                         required
-                        value={shopLocation}
-                        onChange={(e) => setShopLocation(e.target.value)}
-                        placeholder={t.shopFields.locationPlaceholder}
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        placeholder={t.businessFields.namePlaceholder}
                         className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                       />
                     </div>
-                  </div>
-                )}
-
-                {role === "HOTEL" && (
-                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.hotelFields.name} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={hotelName}
-                        onChange={(e) => setHotelName(e.target.value)}
-                        placeholder={t.hotelFields.namePlaceholder}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.hotelFields.location} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={hotelLocation}
-                        onChange={(e) => setHotelLocation(e.target.value)}
-                        placeholder={t.hotelFields.locationPlaceholder}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                          {t.businessFields.location} *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={businessLocation}
+                          onChange={(e) => setBusinessLocation(e.target.value)}
+                          placeholder={t.businessFields.locationPlaceholder}
+                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                          {t.businessFields.regNo}
+                        </label>
+                        <input
+                          type="text"
+                          value={businessRegNo}
+                          onChange={(e) => setBusinessRegNo(e.target.value)}
+                          placeholder={t.businessFields.regNoPlaceholder}
+                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { LanguageProvider } from "./components/LanguageProvider";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { FarmerBottomNav } from "./components/FarmerBottomNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vee Market",
+  title: "Vee Market — Sri Lanka Paddy Marketplace",
   description:
-    "Connecting Farmers, Mills and Businesses",
+    "Connecting Sri Lankan Farmers, Rice Mills and Wholesale Buyers",
 };
 
 export default function RootLayout({
@@ -33,10 +34,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased pb-16 lg:pb-0">
         <ThemeProvider>
           <LanguageProvider>
             {children}
+            <FarmerBottomNav />
           </LanguageProvider>
         </ThemeProvider>
       </body>

@@ -66,14 +66,83 @@ export default function VeeHeader({ roleBadge, roleType }: VeeHeaderProps) {
           </div>
         </Link>
 
+        {/* DESKTOP ROLE NAVIGATION */}
+        <nav className="hidden md:flex items-center gap-1">
+          {roleType === "FARMER" || !roleType ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/dashboard/listings"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                My Lots
+              </Link>
+              <Link
+                href="/dashboard/bids"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Offers
+              </Link>
+              <Link
+                href="/dashboard/orders"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Orders
+              </Link>
+              <Link
+                href="/dashboard/profile"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Profile
+              </Link>
+            </>
+          ) : roleType === "MILL" ? (
+            <>
+              <Link
+                href="/dashboard/mill"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Available Lots & Bidding
+              </Link>
+              <Link
+                href="/dashboard/mill/requirements"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Wholesale Requirements
+              </Link>
+            </>
+          ) : roleType === "BUYER" ? (
+            <>
+              <Link
+                href="/dashboard/business"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Procurement Hub
+              </Link>
+              <Link
+                href="/dashboard/business/requirements"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Post Requirements
+              </Link>
+            </>
+          ) : null}
+        </nav>
+
         {/* RIGHT CONTROLS */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <LanguageSwitcher />
           <ThemeSwitcher />
 
           <button
             onClick={logout}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+            aria-label="Logout"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-red-950/30 dark:hover:text-red-400"
           >
             <span>🚪</span>
             <span className="hidden sm:inline">Logout</span>

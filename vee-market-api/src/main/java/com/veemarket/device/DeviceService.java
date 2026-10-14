@@ -87,12 +87,12 @@ public class DeviceService {
         return device;
     }
 
+    @org.springframework.beans.factory.annotation.Value("${vee.admin.token:dev-admin-token}")
+    private String configuredAdminToken;
+
     public void validateAdminToken(String adminToken) {
-        String expected = System.getenv("VEE_ADMIN_TOKEN");
-        if (expected == null || expected.isBlank()) {
-            expected = "dev-admin-token";
-        }
-        if (adminToken == null || !expected.equals(adminToken.trim())) {
+        if (adminToken == null || adminToken.isBlank() || configuredAdminToken == null || configuredAdminToken.isBlank()
+                || !configuredAdminToken.equals(adminToken.trim())) {
             throw new DeviceContractException(HttpStatus.UNAUTHORIZED, "bad_admin_token", "Admin token required.");
         }
     }
