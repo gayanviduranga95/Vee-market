@@ -91,10 +91,18 @@ public class DeviceService {
     private String configuredAdminToken;
 
     public void validateAdminToken(String adminToken) {
-        if (adminToken == null || adminToken.isBlank() || configuredAdminToken == null || configuredAdminToken.isBlank()
-                || !configuredAdminToken.equals(adminToken.trim())) {
-            throw new DeviceContractException(HttpStatus.UNAUTHORIZED, "bad_admin_token", "Admin token required.");
+        validateAdminAccess(null, adminToken);
+    }
+
+    public void validateAdminAccess(User user, String adminToken) {
+        if (user != null && user.getRole() == Role.ADMIN) {
+            return;
         }
+        if (adminToken != null && !adminToken.isBlank() && configuredAdminToken != null
+                && !configuredAdminToken.isBlank() && configuredAdminToken.equals(adminToken.trim())) {
+            return;
+        }
+        throw new DeviceContractException(HttpStatus.UNAUTHORIZED, "bad_admin_token", "Admin authorization required.");
     }
 
     @Transactional
@@ -344,11 +352,40 @@ public class DeviceService {
         return Collections.singletonMap("status", "cancelled");
     }
 
-    // --- Admin Provisioning ---
+    // --- Admin Provisioning & Device Management ---
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> adminGetDevices(User adminUser, String adminToken) {
+        validateAdminAccess(adminUser, adminToken);
+        return deviceRepository.findAll().stream()
+                .map(this::formatDeviceSummary)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> adminGetDevice(User adminUser, String adminToken, String deviceCode) {
+        validateAdminAccess(adminUser, adminToken);
+        Device device = deviceRepository.findByDeviceCode(deviceCode.trim())
+                .orElseThrow(() -> new DeviceContractException(HttpStatus.NOT_FOUND, "device_unknown", "No device " + deviceCode + "."));
+        return formatDeviceSummary(device);
+    }
+
+    private Map<String, Object> formatDeviceSummary(Device device) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", device.getId());
+        map.put("device_code", device.getDeviceCode());
+        map.put("device_name", device.getDeviceName());
+        map.put("notes", device.getNotes());
+        map.put("status", device.getStatus());
+        map.put("last_seen_at", DeviceContractUtils.toLocalIso(device.getLastSeenAt()));
+        map.put("calibration_version", device.getCalibrationVersion());
+        map.put("firmware_version", device.getFirmwareVersion());
+        map.put("created_at", DeviceContractUtils.toLocalIso(device.getCreatedAt()));
+        return map;
+    }
 
     @Transactional
-    public Map<String, Object> adminCreateDevice(String adminToken, DeviceAdminCreateRequest body) {
-        validateAdminToken(adminToken);
+    public Map<String, Object> adminCreateDevice(User adminUser, String adminToken, DeviceAdminCreateRequest body) {
+        validateAdminAccess(adminUser, adminToken);
 
         if (body.getDeviceCode() == null || body.getDeviceCode().isBlank()) {
             throw new DeviceContractException(HttpStatus.BAD_REQUEST, "invalid_request", "device_code is required.");
@@ -369,6 +406,8 @@ public class DeviceService {
 
         Device device = new Device();
         device.setDeviceCode(code);
+        device.setDeviceName(body.getDeviceName() != null ? body.getDeviceName().trim() : null);
+        device.setNotes(body.getNotes() != null ? body.getNotes().trim() : null);
         device.setSecretHash(passwordEncoder.encode(secret));
         device.setStatus("active");
         device.setCreatedAt(Instant.now());
@@ -376,28 +415,66 @@ public class DeviceService {
 
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("device_code", code);
+        resp.put("device_name", device.getDeviceName());
         resp.put("secret", secret);
+        resp.put("status", device.getStatus());
         resp.put("warning", "Shown once. Only the hash is stored.");
         return resp;
     }
 
     @Transactional
-    public Map<String, Object> adminSetDeviceStatus(String adminToken, String deviceCode, DeviceAdminStatusRequest body) {
-        validateAdminToken(adminToken);
+    public Map<String, Object> adminSetDeviceStatus(User adminUser, String adminToken, String deviceCode, DeviceAdminStatusRequest body) {
+        validateAdminAccess(adminUser, adminToken);
 
         Device device = deviceRepository.findByDeviceCode(deviceCode.trim())
                 .orElseThrow(() -> new DeviceContractException(HttpStatus.NOT_FOUND, "device_unknown", "No device " + deviceCode + "."));
 
-        if (body.getStatus() == null || (!"active".equalsIgnoreCase(body.getStatus()) && !"disabled".equalsIgnoreCase(body.getStatus()))) {
-            throw new DeviceContractException(HttpStatus.BAD_REQUEST, "invalid_status", "status must be 'active' or 'disabled'.");
+        if (body.getStatus() != null) {
+            if (!"active".equalsIgnoreCase(body.getStatus()) && !"disabled".equalsIgnoreCase(body.getStatus())) {
+                throw new DeviceContractException(HttpStatus.BAD_REQUEST, "invalid_status", "status must be 'active' or 'disabled'.");
+            }
+            device.setStatus(body.getStatus().toLowerCase());
         }
 
-        device.setStatus(body.getStatus().toLowerCase());
+        if (body.getDeviceName() != null) {
+            device.setDeviceName(body.getDeviceName().trim());
+        }
+        if (body.getNotes() != null) {
+            device.setNotes(body.getNotes().trim());
+        }
+
         deviceRepository.save(device);
 
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("device_code", deviceCode);
+        resp.put("device_name", device.getDeviceName());
         resp.put("status", device.getStatus());
+        resp.put("notes", device.getNotes());
+        return resp;
+    }
+
+    @Transactional
+    public Map<String, Object> adminRotateDeviceKey(User adminUser, String adminToken, String deviceCode) {
+        validateAdminAccess(adminUser, adminToken);
+
+        Device device = deviceRepository.findByDeviceCode(deviceCode.trim())
+                .orElseThrow(() -> new DeviceContractException(HttpStatus.NOT_FOUND, "device_unknown", "No device " + deviceCode + "."));
+
+        byte[] secretBytes = new byte[32];
+        new SecureRandom().nextBytes(secretBytes);
+        StringBuilder sb = new StringBuilder();
+        for (byte b : secretBytes) {
+            sb.append(String.format("%02x", b));
+        }
+        String newSecret = sb.toString();
+
+        device.setSecretHash(passwordEncoder.encode(newSecret));
+        deviceRepository.save(device);
+
+        Map<String, Object> resp = new LinkedHashMap<>();
+        resp.put("device_code", deviceCode);
+        resp.put("secret", newSecret);
+        resp.put("warning", "Shown once. The previous device key is now invalidated.");
         return resp;
     }
 

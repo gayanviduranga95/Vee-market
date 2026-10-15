@@ -313,6 +313,68 @@ class DeviceIntegrationTest {
                         .header("X-Device-Key", deviceKey))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.session").value(nullValue()));
+
+        // 11. Admin can list devices and get device details
+        mockMvc.perform(get("/api/admin/devices")
+                        .header("X-Admin-Token", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", isA(java.util.List.class)))
+                .andExpect(jsonPath("$[?(@.device_code == '" + provDeviceCode + "')]").isNotEmpty())
+                .andExpect(jsonPath("$[0].secret").doesNotExist())
+                .andExpect(jsonPath("$[0].secret_hash").doesNotExist());
+
+        mockMvc.perform(get("/api/admin/devices/" + provDeviceCode)
+                        .header("X-Admin-Token", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.device_code").value(provDeviceCode))
+                .andExpect(jsonPath("$.status").value("active"))
+                .andExpect(jsonPath("$.secret").doesNotExist())
+                .andExpect(jsonPath("$.secret_hash").doesNotExist());
+
+        // 12. Key rotation generates new key and invalidates previous key
+        MvcResult rotRes = mockMvc.perform(post("/api/admin/devices/" + provDeviceCode + "/rotate-key")
+                        .header("X-Admin-Token", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.device_code").value(provDeviceCode))
+                .andExpect(jsonPath("$.secret").isNotEmpty())
+                .andExpect(jsonPath("$.secret").value(not(equalTo(deviceKey))))
+                .andReturn();
+
+        Map<?, ?> rotMap = objectMapper.readValue(rotRes.getResponse().getContentAsString(), Map.class);
+        String rotatedKey = (String) rotMap.get("secret");
+
+        // Old key is now rejected (401)
+        mockMvc.perform(post("/api/device/poll")
+                        .header("X-Device-Id", provDeviceCode)
+                        .header("X-Device-Key", deviceKey))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("bad_device_key"));
+
+        // New rotated key works (200)
+        mockMvc.perform(post("/api/device/poll")
+                        .header("X-Device-Id", provDeviceCode)
+                        .header("X-Device-Key", rotatedKey))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.session").value(nullValue()));
+
+        // 13. Non-admin farmer JWT user is rejected with 401/403 from admin device operations
+        String farmerToken = (String) ((Map<?, ?>) objectMapper.readValue(
+                mockMvc.perform(post("/api/admin/farmers")
+                                .header("X-Admin-Token", adminToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(new FarmerAdminCreateRequest("Kamal", "0779998888"))))
+                        .andReturn().getResponse().getContentAsString(), Map.class)
+        ).get("token");
+
+        mockMvc.perform(get("/api/admin/devices")
+                        .header("Authorization", "Bearer " + farmerToken))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("bad_admin_token"));
+
+        mockMvc.perform(post("/api/admin/devices/" + provDeviceCode + "/rotate-key")
+                        .header("Authorization", "Bearer " + farmerToken))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("bad_admin_token"));
     }
 }
 

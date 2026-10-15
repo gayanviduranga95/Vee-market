@@ -131,6 +131,21 @@ export default function VeeHeader({ roleBadge, roleType }: VeeHeaderProps) {
                 Post Requirements
               </Link>
             </>
+          ) : roleType === "ADMIN" ? (
+            <>
+              <Link
+                href="/dashboard/admin"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Users & Verifications
+              </Link>
+              <Link
+                href="/dashboard/admin/devices"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#087f3f] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+              >
+                Moisture Meter Devices
+              </Link>
+            </>
           ) : null}
         </nav>
 
