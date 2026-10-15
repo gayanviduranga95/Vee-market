@@ -212,4 +212,107 @@ class DeviceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.session").value(nullValue()));
     }
+
+    @Test
+    @DisplayName("Device provisioning security, validation, enabling/disabling and persistence")
+    void deviceProvisioningAndSecurityLifecycle() throws Exception {
+        String adminToken = "dev-admin-token";
+        String provDeviceCode = "VM-SEC-" + System.currentTimeMillis();
+
+        // 1. Unauthorized provisioning attempt (no admin token or wrong token)
+        mockMvc.perform(post("/api/admin/devices")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new DeviceAdminCreateRequest(provDeviceCode))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("bad_admin_token"));
+
+        mockMvc.perform(post("/api/admin/devices")
+                        .header("X-Admin-Token", "wrong-admin-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new DeviceAdminCreateRequest(provDeviceCode))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("bad_admin_token"));
+
+        // 2. Successful provisioning by authorized administrator
+        MvcResult provRes = mockMvc.perform(post("/api/admin/devices")
+                        .header("X-Admin-Token", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new DeviceAdminCreateRequest(provDeviceCode))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.device_code").value(provDeviceCode))
+                .andExpect(jsonPath("$.secret").isNotEmpty())
+                .andExpect(jsonPath("$.warning").isNotEmpty())
+                .andReturn();
+
+        Map<?, ?> provMap = objectMapper.readValue(provRes.getResponse().getContentAsString(), Map.class);
+        String deviceKey = (String) provMap.get("secret");
+
+        // 3. Duplicate device ID attempt fails with 409 Conflict
+        mockMvc.perform(post("/api/admin/devices")
+                        .header("X-Admin-Token", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new DeviceAdminCreateRequest(provDeviceCode))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("device_exists"));
+
+        // 4. Unknown device receives 401 bad_device_key
+        mockMvc.perform(post("/api/device/poll")
+                        .header("X-Device-Id", "VM-NONEXISTENT")
+                        .header("X-Device-Key", deviceKey))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("bad_device_key"));
+
+        // 5. Incorrect device key receives 401 bad_device_key
+        mockMvc.perform(post("/api/device/poll")
+                        .header("X-Device-Id", provDeviceCode)
+                        .header("X-Device-Key", "definitely-wrong-secret-key"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("bad_device_key"));
+
+        // 6. Valid device key authenticates successfully
+        mockMvc.perform(post("/api/device/poll")
+                        .header("X-Device-Id", provDeviceCode)
+                        .header("X-Device-Key", deviceKey))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.session").value(nullValue()));
+
+        // 7. Disable the device
+        DeviceAdminStatusRequest disableReq = new DeviceAdminStatusRequest();
+        disableReq.setStatus("disabled");
+
+        mockMvc.perform(patch("/api/admin/devices/" + provDeviceCode)
+                        .header("X-Admin-Token", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(disableReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.device_code").value(provDeviceCode))
+                .andExpect(jsonPath("$.status").value("disabled"));
+
+        // 8. Disabled device receives 403 device_disabled on polling
+        mockMvc.perform(post("/api/device/poll")
+                        .header("X-Device-Id", provDeviceCode)
+                        .header("X-Device-Key", deviceKey))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("device_disabled"));
+
+        // 9. Re-enable the device
+        DeviceAdminStatusRequest enableReq = new DeviceAdminStatusRequest();
+        enableReq.setStatus("active");
+
+        mockMvc.perform(patch("/api/admin/devices/" + provDeviceCode)
+                        .header("X-Admin-Token", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(enableReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.device_code").value(provDeviceCode))
+                .andExpect(jsonPath("$.status").value("active"));
+
+        // 10. Device can authenticate again
+        mockMvc.perform(post("/api/device/poll")
+                        .header("X-Device-Id", provDeviceCode)
+                        .header("X-Device-Key", deviceKey))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.session").value(nullValue()));
+    }
 }
+

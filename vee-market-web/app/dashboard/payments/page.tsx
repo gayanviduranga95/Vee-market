@@ -98,7 +98,8 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     loadPayments();
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleMarkPaid(dealId: number) {
     const token =

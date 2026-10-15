@@ -80,7 +80,8 @@ export default function FarmerProfilePage() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : t.errorText))
       .finally(() => setLoading(false));
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function logout() {
     [

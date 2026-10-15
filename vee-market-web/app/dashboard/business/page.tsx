@@ -146,7 +146,8 @@ export default function BusinessDashboardPage() {
 
   useEffect(() => {
     loadData();
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleAddRequirement(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

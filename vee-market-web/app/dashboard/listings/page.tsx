@@ -111,7 +111,8 @@ export default function ListingsPage() {
 
   useEffect(() => {
     loadLots();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredLots = useMemo(() => {
     return lots.filter((lot) => {

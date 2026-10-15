@@ -161,3 +161,25 @@ html.dark ::-webkit-scrollbar-thumb {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
+
+/* Safe area insets for mobile (iPhone notch / home indicator) */
+:root {
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+}
+
+/* Prevent content from going under fixed bottom nav on mobile */
+@media (max-width: 1024px) {
+  body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* When on login/register page, no bottom padding needed */
+body.auth-page {
+  padding-bottom: 0 !important;
+}

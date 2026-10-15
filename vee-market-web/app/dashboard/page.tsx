@@ -205,7 +205,8 @@ export default function DashboardPage() {
     }
 
     loadDashboard(token);
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const activeLots = lots.filter(
     (lot) => !lot.status || lot.status.toUpperCase() === "ACTIVE"
@@ -215,10 +216,11 @@ export default function DashboardPage() {
     (bid) => !bid.status || bid.status.toUpperCase() === "PENDING"
   );
 
-  const farmerName =
-    farmer?.name ||
-    localStorage.getItem("vee-market-user-email")?.split("@")[0] ||
-    "gayanviduranga95";
+  const [clientEmail, setClientEmail] = useState("");
+  useEffect(() => {
+    setClientEmail(localStorage.getItem("vee-market-user-email")?.split("@")[0] || "");
+  }, []);
+  const farmerName = farmer?.name || clientEmail || "Welcome";
 
   // Formatted date for Sri Lanka / Local agricultural weather card
   const formattedDate = useMemo(() => {
@@ -245,7 +247,7 @@ export default function DashboardPage() {
           {/* Panoramic Agricultural Background Image */}
           <div
             className="absolute inset-0 bg-cover bg-center sm:bg-left-bottom transition-transform duration-700 hover:scale-105"
-            style={{ backgroundImage: `url('/images/vee-market-hero.png')` }}
+            style={{ backgroundImage: `url('/vee-market-hero.png')` }}
             aria-hidden="true"
           />
 

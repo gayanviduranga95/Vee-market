@@ -129,7 +129,8 @@ export default function NewPaddyLotPage() {
     }
 
     loadFarms();
-  }, [router, isSinhala]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

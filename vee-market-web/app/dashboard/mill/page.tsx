@@ -168,7 +168,8 @@ export default function MillDashboardPage() {
 
   useEffect(() => {
     loadData();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handlePlaceBid(lotId: number) {
     const headers = authHeaders();

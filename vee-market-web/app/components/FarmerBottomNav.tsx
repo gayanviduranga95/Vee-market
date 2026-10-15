@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
+import { useEffect, useState } from "react";
 
 interface NavItem {
   href: string;
@@ -23,13 +24,25 @@ export function FarmerBottomNav() {
   const pathname = usePathname();
   const { language } = useLanguage();
   const isSinhala = language === "si";
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Read role from localStorage on client
+    const role = localStorage.getItem("vee-market-user-role") || "";
+    setUserRole(role.toUpperCase());
+  }, [pathname]);
 
   // Hide on authentication and landing screens
   if (!pathname || pathname === "/" || pathname.startsWith("/login") || pathname.startsWith("/register")) {
     return null;
   }
 
-  // Check if role is mill or buyer or admin (only display for farmers or default dashboard)
+  // Only show for farmer role (or unknown role on dashboard)
+  if (userRole === "MILL" || userRole === "BUYER" || userRole === "ADMIN") {
+    return null;
+  }
+
+  // Check if on mill / business / admin path
   const isMill = pathname.startsWith("/dashboard/mill");
   const isBusiness = pathname.startsWith("/dashboard/business");
   const isAdmin = pathname.startsWith("/dashboard/admin");
@@ -43,7 +56,7 @@ export function FarmerBottomNav() {
       aria-label="Mobile Navigation"
       className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95 lg:hidden"
     >
-      <div className="mx-auto grid max-w-md grid-cols-4 px-1 py-1">
+      <div className="mx-auto grid max-w-md grid-cols-4 px-1 py-1 pb-safe">
         {FARMER_NAV.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -55,7 +68,7 @@ export function FarmerBottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center rounded-xl py-1.5 transition-all select-none ${
+              className={`flex flex-col items-center justify-center rounded-xl py-2 transition-all select-none ${
                 isActive
                   ? "text-[#087f3f] font-extrabold dark:text-emerald-400"
                   : "text-slate-500 hover:text-slate-900 font-medium dark:text-slate-400 dark:hover:text-slate-200"
@@ -64,7 +77,10 @@ export function FarmerBottomNav() {
               <span className={`text-xl transition-transform ${isActive ? "scale-110" : ""}`}>
                 {item.icon}
               </span>
-              <span className="mt-0.5 text-[11px] leading-tight tracking-tight">
+              {isActive && (
+                <span className="mt-0.5 h-1 w-1 rounded-full bg-[#087f3f] dark:bg-emerald-400" />
+              )}
+              <span className="mt-0.5 text-[10px] leading-tight tracking-tight">
                 {label}
               </span>
             </Link>

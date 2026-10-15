@@ -107,7 +107,8 @@ export default function OrdersPage() {
 
   useEffect(() => {
     loadDeals();
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleConfirmDeal(dealId: number) {
     const token =

@@ -111,7 +111,8 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     loadUsers();
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function updateVerification(
     userId: number,

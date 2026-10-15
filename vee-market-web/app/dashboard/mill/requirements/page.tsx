@@ -108,7 +108,8 @@ export default function MillRequirementsPage() {
 
   useEffect(() => {
     loadData();
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmitOffer(requirementId: number) {
     const headers = authHeaders();

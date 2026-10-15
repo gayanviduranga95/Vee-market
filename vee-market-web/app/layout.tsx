@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   title: "Vee Market — Sri Lanka Paddy Marketplace",
   description:
     "Connecting Sri Lankan Farmers, Rice Mills and Wholesale Buyers",
+  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
 };
 
 export default function RootLayout({
@@ -34,7 +35,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="min-h-screen antialiased pb-16 lg:pb-0">
+      <body className="min-h-screen antialiased">
         <ThemeProvider>
           <LanguageProvider>
             {children}

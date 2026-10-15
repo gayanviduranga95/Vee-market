@@ -93,7 +93,8 @@ export default function FarmerBidsPage() {
 
   useEffect(() => {
     loadBids();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#f4f7f3] text-slate-900 transition-colors dark:bg-slate-950 dark:text-white">

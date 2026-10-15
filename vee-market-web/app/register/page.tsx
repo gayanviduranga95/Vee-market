@@ -27,16 +27,10 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Role-specific fields
-  // Farmer
   const [farmLocation, setFarmLocation] = useState("");
-
-  // Mill
   const [millName, setMillName] = useState("");
   const [millLocation, setMillLocation] = useState("");
   const [millRegNo, setMillRegNo] = useState("");
-  const [millingCapacity, setMillingCapacity] = useState("2000");
-
-  // Unified Business (Shop / Hotel / Commercial Buyer)
   const [businessType, setBusinessType] = useState<"SHOP" | "HOTEL">("SHOP");
   const [businessName, setBusinessName] = useState("");
   const [businessLocation, setBusinessLocation] = useState("");
@@ -100,11 +94,6 @@ export default function RegisterPage() {
     farmerFields: {
       location: isSinhala ? "ගොවිපළ දිස්ත්‍රික්කය" : "Farm District / Region",
       locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව / අම්පාර" : "e.g. Polonnaruwa, Ampara",
-      deviceNumber: isSinhala ? "තෙතමන මාපක අංකය (විකල්ප)" : "Moisture Meter ID (Optional)",
-      devicePlaceholder: "e.g. DEVICE-001",
-      deviceHelp: isSinhala
-        ? "ස්මාර්ට් තෙතමන මාපකයක් ඇත්නම් ඇතුළත් කරන්න."
-        : "Connect your digital IoT meter for verified readings.",
     },
 
     millFields: {
@@ -114,15 +103,14 @@ export default function RegisterPage() {
       locationPlaceholder: isSinhala ? "උදා: පොළොන්නරුව" : "e.g. Polonnaruwa Industrial Zone",
       regNo: isSinhala ? "මෝල් ලියාපදිංචි අංකය" : "Mill Registration No",
       regNoPlaceholder: "e.g. ML-2024-001 (Optional)",
-      capacity: isSinhala ? "දිනක ඇඹරුම් ධාරිතාව (kg)" : "Daily Milling Capacity (kg)",
     },
 
     businessFields: {
       type: isSinhala ? "ව්‍යාපාර වර්ගය" : "Business Category",
-      shopOption: isSinhala ? "🏪 තොග හෝ සිල්ලර වෙළඳසැල (Shop)" : "🏪 Wholesale or Retail Shop",
-      hotelOption: isSinhala ? "🏨 හෝටලය හෝ අවන්හල (Hotel / Restaurant)" : "🏨 Hotel or Restaurant",
+      shopOption: isSinhala ? "🏪 තොග හෝ සිල්ලර වෙළඳසැල" : "🏪 Wholesale or Retail Shop",
+      hotelOption: isSinhala ? "🏨 හෝටලය හෝ අවන්හල" : "🏨 Hotel or Restaurant",
       name: isSinhala ? "ව්‍යාපාරයේ නම" : "Business Name",
-      namePlaceholder: isSinhala ? "උදා: ලංකා තොග වෙළඳුන් / ග්‍රෑන්ඩ් හොටෙල්" : "e.g. Lanka Wholesale Traders / Grand Hotel",
+      namePlaceholder: isSinhala ? "උදා: ලංකා තොග වෙළඳුන්" : "e.g. Lanka Wholesale Traders",
       location: isSinhala ? "ව්‍යාපාර ස්ථානය / නගරය" : "Business Location / City",
       locationPlaceholder: isSinhala ? "උදා: පිටකොටුව, කොළඹ" : "e.g. Pettah, Colombo",
       regNo: isSinhala ? "ව්‍යාපාර ලියාපදිංචි අංකය (විකල්ප)" : "Business Reg No (Optional)",
@@ -163,8 +151,6 @@ export default function RegisterPage() {
       setError(isSinhala ? "මුරපද දෙක නොගැලපේ." : "Passwords do not match.");
       return;
     }
-
-    // Role-specific validations
     if (role === "MILL" && !millName.trim()) {
       setError(isSinhala ? "සහල් මෝලේ නම ඇතුළත් කරන්න." : "Please enter rice mill name.");
       return;
@@ -185,11 +171,7 @@ export default function RegisterPage() {
       };
 
       if (role === "FARMER") {
-        payload = {
-          ...payload,
-          role: "FARMER",
-          businessLocation: farmLocation.trim() || null,
-        };
+        payload = { ...payload, role: "FARMER", businessLocation: farmLocation.trim() || null };
       } else if (role === "MILL") {
         payload = {
           ...payload,
@@ -202,7 +184,7 @@ export default function RegisterPage() {
         payload = {
           ...payload,
           role: "BUYER",
-          businessType: businessType, // "SHOP" or "HOTEL"
+          businessType,
           businessName: businessName.trim(),
           businessLocation: businessLocation.trim() || null,
           deviceNumber: businessRegNo.trim() || null,
@@ -211,10 +193,7 @@ export default function RegisterPage() {
 
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -233,16 +212,12 @@ export default function RegisterPage() {
         throw new Error(
           data?.message ||
             data?.error ||
-            (isSinhala
-              ? "ලියාපදිංචි වීම අසාර්ථක විය."
-              : "Registration failed. Please check details.")
+            (isSinhala ? "ලියාපදිංචි වීම අසාර්ථක විය." : "Registration failed. Please check details.")
         );
       }
 
       setSuccess(t.successMsg);
-      setTimeout(() => {
-        router.push("/login");
-      }, 1200);
+      setTimeout(() => { router.push("/login"); }, 1200);
     } catch (err) {
       console.error("Registration error:", err);
       setError(
@@ -257,25 +232,32 @@ export default function RegisterPage() {
     }
   }
 
+  const inputClass =
+    "h-11 sm:h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 sm:px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-500 dark:focus:ring-emerald-500/10";
+
   return (
-    <main className="min-h-screen bg-[#edf5ef] dark:bg-background">
-      <div className="mx-auto min-h-screen w-full max-w-[1700px] xl:p-6">
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-white dark:bg-surface xl:flex-row xl:min-h-[calc(100vh-48px)] xl:rounded-[30px] xl:shadow-[0_20px_70px_rgba(0,0,0,0.12)]">
-          {/* ==================================================
-              LEFT HERO (SAME AS LOGIN PAGE)
-          ================================================== */}
-          <section className="relative flex min-h-[430px] w-full flex-col justify-end overflow-hidden sm:min-h-[500px] xl:min-h-0 xl:w-[50%]">
-            {/* HERO IMAGE */}
+    <main className="min-h-[100dvh] bg-[#edf5ef] dark:bg-background">
+      <div className="mx-auto min-h-[100dvh] w-full max-w-[1700px] xl:min-h-0 xl:p-6">
+        <div
+          className="
+            relative flex min-h-[100dvh] flex-col overflow-hidden
+            bg-white dark:bg-surface
+            xl:flex-row xl:min-h-[calc(100vh-48px)]
+            xl:rounded-[30px] xl:shadow-[0_20px_70px_rgba(0,0,0,0.12)]
+          "
+        >
+          {/* ====================================================
+              LEFT HERO — desktop only (xl+)
+          ==================================================== */}
+          <section className="relative hidden xl:flex w-[50%] flex-col justify-end overflow-hidden">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: "url('/vee-market-hero.png')" }}
             />
-
-            {/* DARK GRADIENT */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#04351f]/95 via-[#04351f]/45 to-transparent" />
 
             {/* BRAND */}
-            <div className="absolute left-5 top-5 z-10 flex items-center gap-3 sm:left-8 sm:top-8">
+            <div className="absolute left-8 top-8 z-10 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 shadow-lg">
                 <LeafLogo />
               </div>
@@ -286,16 +268,15 @@ export default function RegisterPage() {
             </div>
 
             {/* HERO CONTENT */}
-            <div className="relative z-10 p-5 sm:p-8 md:p-10 xl:p-14">
+            <div className="relative z-10 p-14">
               <div className="max-w-[650px]">
-                <h2 className="text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl xl:text-[52px]">
+                <h2 className="text-[52px] font-bold leading-tight tracking-tight text-white">
                   {t.heroTitle}
                 </h2>
-                <p className="mt-4 max-w-[560px] text-sm leading-6 text-white/90 sm:text-base md:text-lg">
+                <p className="mt-4 max-w-[560px] text-lg leading-6 text-white/90">
                   {t.heroDescription}
                 </p>
-
-                <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                <div className="mt-6 grid grid-cols-3 gap-4">
                   <Feature icon="🌱" title={t.fairMarket} />
                   <Feature icon="🤝" title={t.trustedNetwork} />
                   <Feature icon="🚚" title={t.reliableSupply} />
@@ -304,83 +285,96 @@ export default function RegisterPage() {
             </div>
           </section>
 
-          {/* ==================================================
-              RIGHT REGISTRATION PANEL (SAME THEME AS LOGIN)
-          ================================================== */}
-          <section className="relative flex w-full flex-1 items-center justify-center bg-white dark:bg-surface px-5 py-10 sm:px-8 md:px-12 xl:w-[50%] xl:px-14 xl:py-10">
+          {/* ====================================================
+              RIGHT REGISTRATION PANEL
+          ==================================================== */}
+          <section className="relative flex w-full flex-1 flex-col bg-white dark:bg-surface xl:w-[50%]">
             {/* TOP CONTROLS */}
-            <div className="absolute right-4 top-4 sm:right-7 sm:top-7 flex items-center gap-2">
-              <ThemeSwitcher />
-              <LanguageSwitcher />
-            </div>
-
-            <div className="w-full max-w-[500px] pt-10 sm:pt-14 xl:pt-4">
-              {/* LOGO */}
-              <div className="mb-6 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 dark:bg-emerald-950/40">
+            <div className="flex items-center justify-between px-4 py-2.5 sm:px-8 sm:py-5">
+              {/* Mobile brand mark */}
+              <div className="flex items-center gap-2 xl:invisible">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40">
                   <LeafLogo />
                 </div>
-                <h2 className="mt-3 text-xl font-bold text-[#063b25] dark:text-emerald-400 sm:text-2xl">
-                  {t.brand.name}
-                </h2>
+                <div>
+                  <span className="text-sm sm:text-base font-extrabold text-[#063b25] dark:text-emerald-400">
+                    {t.brand.name}
+                  </span>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 leading-none">
+                    {t.brand.tagline}
+                  </p>
+                </div>
               </div>
-
-              {/* TITLE */}
-              <div className="text-center mb-6">
-                <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-                  {t.title}
-                </h3>
-                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 sm:text-base">
-                  {t.subtitle}
-                </p>
+              <div className="flex items-center gap-2">
+                <ThemeSwitcher />
+                <LanguageSwitcher />
               </div>
+            </div>
 
-              {/* STEP 1: ROLE SELECTOR CARDS */}
-              <div className="mb-6">
-                <div className="grid grid-cols-3 gap-2">
+            {/* FORM AREA */}
+            <div className="flex flex-1 items-start justify-center overflow-y-auto px-4 pb-8 pt-1 sm:px-8 xl:px-14 xl:py-6">
+              <div className="w-full max-w-[500px]">
+
+                {/* LOGO (desktop) */}
+                <div className="mb-5 hidden xl:block text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 dark:bg-emerald-950/40">
+                    <LeafLogo />
+                  </div>
+                  <h2 className="mt-3 text-xl font-bold text-[#063b25] dark:text-emerald-400 sm:text-2xl">
+                    {t.brand.name}
+                  </h2>
+                </div>
+
+                {/* TITLE */}
+                <div className="text-center mb-3 sm:mb-5">
+                  <h3 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    {t.title}
+                  </h3>
+                  <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                    {t.subtitle}
+                  </p>
+                </div>
+
+                {/* ROLE SELECTOR */}
+                <div className="mb-3 sm:mb-5 grid grid-cols-3 gap-1.5 sm:gap-2">
                   {(["FARMER", "MILL", "BUSINESS"] as RoleType[]).map((r) => {
                     const roleMeta = t.roles[r];
                     const isSelected = role === r;
-
                     return (
                       <button
                         type="button"
                         key={r}
                         onClick={() => setRole(r)}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition ${
+                        className={`flex flex-col items-center justify-center gap-0.5 sm:gap-1 p-2 sm:p-3 rounded-xl border text-center transition ${
                           isSelected
                             ? "border-[#087f3f] bg-[#edf5ef] text-[#087f3f] font-bold shadow-sm dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300"
                             : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400"
                         }`}
                       >
-                        <span className="text-2xl">{roleMeta.badge}</span>
-                        <span className="mt-1 text-xs font-semibold leading-tight">
-                          {roleMeta.title}
-                        </span>
+                        <span className="text-xl sm:text-2xl">{roleMeta.badge}</span>
+                        <span className="text-[11px] sm:text-xs font-semibold leading-tight">{roleMeta.title}</span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
 
-              {/* ERROR / SUCCESS NOTICES */}
-              {error && (
-                <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-                  {error}
-                </div>
-              )}
-              {success && (
-                <div className="mb-4 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-300">
-                  {success}
-                </div>
-              )}
+                {/* ERROR / SUCCESS */}
+                {error && (
+                  <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="mb-4 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-300">
+                    {success}
+                  </div>
+                )}
 
-              {/* FORM */}
-              <form onSubmit={handleRegister} className="space-y-4">
-                {/* ROLE-SPECIFIC SPECIALIZED FIELDS */}
-                {role === "FARMER" && (
-                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
-                    <div>
+                {/* FORM */}
+                <form onSubmit={handleRegister} className="space-y-3.5">
+                  {/* ROLE-SPECIFIC FIELDS */}
+                  {role === "FARMER" && (
+                    <div className="rounded-2xl border border-green-100 bg-green-50/40 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
                       <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
                         {t.farmerFields.location}
                       </label>
@@ -389,222 +383,234 @@ export default function RegisterPage() {
                         value={farmLocation}
                         onChange={(e) => setFarmLocation(e.target.value)}
                         placeholder={t.farmerFields.locationPlaceholder}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                        className={inputClass}
                       />
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {role === "MILL" && (
-                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.millFields.name} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={millName}
-                        onChange={(e) => setMillName(e.target.value)}
-                        placeholder={t.millFields.namePlaceholder}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {role === "MILL" && (
+                    <div className="rounded-2xl border border-green-100 bg-green-50/40 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-2.5">
                       <div>
                         <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          {t.millFields.location} *
+                          {t.millFields.name} *
                         </label>
                         <input
                           type="text"
                           required
-                          value={millLocation}
-                          onChange={(e) => setMillLocation(e.target.value)}
-                          placeholder={t.millFields.locationPlaceholder}
-                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          value={millName}
+                          onChange={(e) => setMillName(e.target.value)}
+                          placeholder={t.millFields.namePlaceholder}
+                          className={inputClass}
                         />
                       </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          {t.millFields.regNo}
-                        </label>
-                        <input
-                          type="text"
-                          value={millRegNo}
-                          onChange={(e) => setMillRegNo(e.target.value)}
-                          placeholder={t.millFields.regNoPlaceholder}
-                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                        />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {t.millFields.location} *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={millLocation}
+                            onChange={(e) => setMillLocation(e.target.value)}
+                            placeholder={t.millFields.locationPlaceholder}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {t.millFields.regNo}
+                          </label>
+                          <input
+                            type="text"
+                            value={millRegNo}
+                            onChange={(e) => setMillRegNo(e.target.value)}
+                            placeholder={t.millFields.regNoPlaceholder}
+                            className={inputClass}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {role === "BUSINESS" && (
-                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.businessFields.type} *
-                      </label>
-                      <select
-                        value={businessType}
-                        onChange={(e) => setBusinessType(e.target.value as "SHOP" | "HOTEL")}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      >
-                        <option value="SHOP">{t.businessFields.shopOption}</option>
-                        <option value="HOTEL">{t.businessFields.hotelOption}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {t.businessFields.name} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={businessName}
-                        onChange={(e) => setBusinessName(e.target.value)}
-                        placeholder={t.businessFields.namePlaceholder}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {role === "BUSINESS" && (
+                    <div className="rounded-2xl border border-green-100 bg-green-50/40 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20 space-y-2.5">
                       <div>
                         <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          {t.businessFields.location} *
+                          {t.businessFields.type} *
+                        </label>
+                        <select
+                          value={businessType}
+                          onChange={(e) => setBusinessType(e.target.value as "SHOP" | "HOTEL")}
+                          className={inputClass}
+                        >
+                          <option value="SHOP">{t.businessFields.shopOption}</option>
+                          <option value="HOTEL">{t.businessFields.hotelOption}</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                          {t.businessFields.name} *
                         </label>
                         <input
                           type="text"
                           required
-                          value={businessLocation}
-                          onChange={(e) => setBusinessLocation(e.target.value)}
-                          placeholder={t.businessFields.locationPlaceholder}
-                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          value={businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                          placeholder={t.businessFields.namePlaceholder}
+                          className={inputClass}
                         />
                       </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          {t.businessFields.regNo}
-                        </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {t.businessFields.location} *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={businessLocation}
+                            onChange={(e) => setBusinessLocation(e.target.value)}
+                            placeholder={t.businessFields.locationPlaceholder}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {t.businessFields.regNo}
+                          </label>
+                          <input
+                            type="text"
+                            value={businessRegNo}
+                            onChange={(e) => setBusinessRegNo(e.target.value)}
+                            placeholder={t.businessFields.regNoPlaceholder}
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* COMMON CREDENTIALS */}
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {t.common.name}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={t.common.namePlaceholder}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {t.common.phone}
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder={t.common.phonePlaceholder}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {t.common.email}
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder={t.common.emailPlaceholder}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {t.common.password}
+                      </label>
+                      <div className="relative">
                         <input
-                          type="text"
-                          value={businessRegNo}
-                          onChange={(e) => setBusinessRegNo(e.target.value)}
-                          placeholder={t.businessFields.regNoPlaceholder}
-                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-[#087f3f] focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder={t.common.passwordPlaceholder}
+                          className={`${inputClass} pr-11`}
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                        >
+                          {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {t.common.confirmPassword}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder={t.common.confirmPasswordPlaceholder}
+                          className={`${inputClass} pr-11`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                        >
+                          {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                        </button>
                       </div>
                     </div>
                   </div>
-                )}
 
-                {/* COMMON CREDENTIALS */}
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {t.common.name}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t.common.namePlaceholder}
-                    className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
+                  {/* SUBMIT */}
+                  <button
+                    type="submit"
+                    id="register-submit-btn"
+                    disabled={loading}
+                    className="
+                      mt-2 flex h-14 w-full items-center justify-center rounded-xl
+                      bg-[#087f3f] text-base font-semibold text-white shadow-lg shadow-green-900/20
+                      transition hover:bg-[#076f37] hover:shadow-xl active:bg-[#055729]
+                      disabled:opacity-60 disabled:cursor-not-allowed
+                      dark:bg-emerald-600 dark:hover:bg-emerald-500
+                    "
+                  >
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        {t.submitting}
+                      </span>
+                    ) : (
+                      t.submit
+                    )}
+                  </button>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {t.common.phone}
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder={t.common.phonePlaceholder}
-                      className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {t.common.email}
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t.common.emailPlaceholder}
-                      className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {t.common.password}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        required
-                        minLength={6}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder={t.common.passwordPlaceholder}
-                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {t.common.confirmPassword}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        required
-                        minLength={6}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder={t.common.confirmPasswordPlaceholder}
-                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#087f3f] focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SUBMIT BUTTON (MATCHES LOGIN PAGE BUTTON) */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="mt-6 flex h-14 w-full items-center justify-center rounded-xl bg-[#087f3f] text-base font-semibold text-white shadow-lg shadow-green-900/20 transition hover:bg-[#076f37] hover:shadow-xl disabled:opacity-60"
-                >
-                  {loading ? t.submitting : t.submit}
-                </button>
-
-                {/* LOGIN LINK */}
-                <div className="text-center pt-2">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {/* LOGIN LINK */}
+                  <p className="pt-1 text-center text-sm text-slate-500 dark:text-slate-400">
                     {t.alreadyAccount}{" "}
                     <Link
                       href="/login"
@@ -613,8 +619,8 @@ export default function RegisterPage() {
                       {t.loginLink}
                     </Link>
                   </p>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </section>
         </div>
@@ -624,13 +630,13 @@ export default function RegisterPage() {
 }
 
 /* ============================================================
-   SHARED HERO COMPONENTS & ICONS (IDENTICAL TO LOGIN PAGE)
+   SHARED COMPONENTS
 ============================================================ */
 
 function Feature({ icon, title }: { icon: string; title: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-3 backdrop-blur-md transition hover:bg-white/15 sm:p-4">
-      <div className="text-xl sm:text-2xl">{icon}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md transition hover:bg-white/15">
+      <div className="text-2xl">{icon}</div>
       <p className="mt-2 text-xs font-semibold text-white sm:text-sm">{title}</p>
     </div>
   );
